@@ -357,12 +357,130 @@ function DashboardPage() {
 function EditorPage() {
   const { navigate, editingPresId } = useApp();
   const pres = MOCK_PRES.find(p=>p.id===editingPresId) || { title:"New Presentation", slides:3, color:"#6366F1" };
-  const [slides] = useState([
-    { bg:"linear-gradient(135deg,#0D0F14,#1a1d2e)", elements:[{ type:"text",x:80,y:100,text:"Presentation Title",size:42,bold:true },{ type:"text",x:80,y:180,text:"Subtitle goes here",size:20,bold:false,color:"#64748B" }] },
-    { bg:"#0D0F14", elements:[{ type:"text",x:60,y:40,text:"Key Insights",size:30,bold:true },{ type:"shape",x:60,y:90,w:40,h:3,color:"#6366F1" },{ type:"text",x:60,y:120,text:"Add your content here. Click to edit.",size:16,bold:false,color:"#94A3B8" }] },
-    { bg:"linear-gradient(160deg,#0D0F14,#0f1129)", elements:[{ type:"text",x:80,y:40,text:"What do you think?",size:28,bold:true },{ type:"poll",x:80,y:100 }] },
-  ]);
-  const [activeSlide,setActiveSlide]=useState(0);
+
+  // ── Slides state (editable) ──
+  const [slides, setSlides] = useState(() => {
+    // حاول تحميل آخر عمل محفوظ من المتصفح
+    try {
+      const saved = localStorage.getItem("slidepulse_draft");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    // افتراضي
+    return [
+      { bg:"linear-gradient(135deg,#0D0F14,#1a1d2e)", elements:[
+        { id: crypto.randomUUID(), type:"text",x:80,y:100,text:"Presentation Title",size:42,bold:true,color:"#E2E8F0" },
+        { id: crypto.randomUUID(), type:"text",x:80,y:180,text:"Subtitle goes here",size:20,bold:false,color:"#64748B" }
+      ]},
+      { bg:"#0D0F14", elements:[
+        { id: crypto.randomUUID(), type:"text",x:60,y:40,text:"Key Insights",size:30,bold:true,color:"#E2E8F0" },
+        { id: crypto.randomUUID(), type:"shape",x:60,y:90,w:120,h:4,color:"#6366F1" },
+        { id: crypto.randomUUID(), type:"text",x:60,y:120,text:"Add your content here. Click to edit.",size:16,bold:false,color:"#94A3B8" }
+      ]},
+      { bg:"linear-gradient(160deg,#0D0F14,#0f1129)", elements:[
+        { id: crypto.randomUUID(), type:"text",x:80,y:40,text:"What do you think?",size:28,bold:true,color:"#E2E8F0" },
+        { id: crypto.randomUUID(), type:"poll",x:80,y:100 }
+      ]},
+    ];
+  });
+
+  const [activeSlide,setActiveSlide] = useState(0);
+  const [selectedId, setSelectedId] = useState(null);
+
+  // ── Auto-save to localStorage ──
+  useEffect(() => {
+    try {
+      localStorage.setItem("slidepulse_draft", JSON.stringify(slides));
+    } catch {}
+  }, [slides]);
+
+  const selectedEl = slides[activeSlide]?.elements?.find(e => e.id === selectedId) || null;
+
+  // ── Helpers ──
+  const updateSelected = (patch) => {
+    if(!selectedId) return;
+    setSlides(prev => prev.map((s, si) => {
+      if (si !== activeSlide) return s;
+      return {
+        ...s,
+        elements: s.elements.map(el => el.id === selectedId ? { ...el, ...patch } : el)
+      };
+    }));
+  };
+
+  const addElement = (type) => {
+    const base = { id: crypto.randomUUID(), type, x: 120, y: 120 };
+    let el = base;
+    if (type === "text") el = { ...base, text: "New text", size: 22, bold: false, color:"#E2E8F0" };
+    if (type === "shape") el = { ...base, w: 160, h: 8, color:"#6366F1" };
+    if (type === "circle") el = { ...base, w: 120, h: 120, color:"#8B5CF6" };
+    if (type === "image") el = { ...base, w: 220, h: 140, url: "" };
+    if (type === "poll") el = { ...base, options: ["Option A","Option B","Option C","Option D"] };
+
+    setSlides(prev => prev.map((s, si) => {
+      if (si !== activeSlide) return s;
+      return { ...s, elements: [...s.elements, el] };
+    }));
+    setSelectedId(el.id);
+  };
+
+  const addSlide = () => {
+    setSlides(prev => [...prev, { bg:"#0D0F14", elements: [] }]);
+    setActiveSlide(slides.length);
+    setSelectedId(null);
+  };
+
+  const deleteSlide = () => {
+    if (slides.length <= 1) return;
+    setSlides(prev => prev.filter((_,i)=>i!==activeSlide));
+    setActiveSlide(s => Math.max(0, s-1));
+    setSelectedId(null);
+  };
+
+  const deleteSelected = () => {
+    if(!selectedId) return;
+    setSlides(prev => prev.map((s, si) => {
+      if (si !== activeSlide) return s;
+      return { ...s, elements: s.elements.filter(el => el.id !== selectedId) };
+    }));
+    setSelectedId(null);
+  };
+
+  // ── Drag logic ──
+  const dragRef = useRef({ dragging:false, id:null, startX:0, startY:0, elX:0, elY:0 });
+
+  const onMouseDownEl = (e, el) => {
+    e.stopPropagation();
+    setSelectedId(el.id);
+    dragRef.current = {
+      dragging: true,
+      id: el.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      elX: el.x,
+      elY: el.y
+    };
+  };
+
+  const onMouseMove = (e) => {
+    if(!dragRef.current.dragging) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    updateSelected({ x: dragRef.current.elX + dx, y: dragRef.current.elY + dy });
+  };
+
+  const onMouseUp = () => {
+    dragRef.current.dragging = false;
+    dragRef.current.id = null;
+  };
+
+  useEffect(() => {
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  });
 
   return (
     <div style={{ display:"flex",flexDirection:"column",height:"100vh" }}>
@@ -374,6 +492,10 @@ function EditorPage() {
           <Logo size={22} />
           <div style={{ width:1,height:22,background:"#1a1d2e" }} />
           <span style={{ fontSize:14,color:"#94A3B8" }}>{pres.title}</span>
+
+          <div style={{ width:1,height:22,background:"#1a1d2e",marginLeft:8 }} />
+          <button onClick={addSlide} style={{ ...btnGhost,padding:"6px 12px",fontSize:12 }}>+ Slide</button>
+          <button onClick={deleteSlide} style={{ ...btnGhost,padding:"6px 12px",fontSize:12,borderColor:"#F43F5E40",color:"#F43F5E" }}>Delete Slide</button>
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:6 }}>
           <button onClick={()=>navigate("presenter-live")} style={{ ...btnGhost,padding:"6px 14px",fontSize:12,gap:6 }}><IC.Users /> Go Live</button>
@@ -385,7 +507,7 @@ function EditorPage() {
         {/* Slide panel */}
         <div style={{ width:180,background:"#0A0C12",borderRight:"1px solid #111420",overflow:"auto",padding:"10px 8px",flexShrink:0 }}>
           {slides.map((_,i)=>(
-            <div key={i} onClick={()=>setActiveSlide(i)} style={{ marginBottom:8,borderRadius:8,border:i===activeSlide?"2px solid #6366F1":"2px solid transparent",cursor:"pointer",overflow:"hidden" }}>
+            <div key={i} onClick={()=>{setActiveSlide(i);setSelectedId(null);}} style={{ marginBottom:8,borderRadius:8,border:i===activeSlide?"2px solid #6366F1":"2px solid transparent",cursor:"pointer",overflow:"hidden" }}>
               <div style={{ paddingTop:"56.25%",background:slides[i].bg,borderRadius:6,position:"relative" }}>
                 <div style={{ position:"absolute",bottom:4,left:6,fontSize:9,color:"#4a5070" }}>{i+1}</div>
               </div>
@@ -395,33 +517,135 @@ function EditorPage() {
 
         {/* Canvas */}
         <div style={{ flex:1,display:"flex",flexDirection:"column" }}>
-          <div style={{ display:"flex",alignItems:"center",padding:"8px 16px",gap:4,borderBottom:"1px solid #0F1118",flexShrink:0 }}>
-            {[[<IC.Text />,"Text"],[<IC.Square />,"Shape"],[<IC.Circle />,"Circle"],[<IC.Image />,"Image"],[<IC.Poll />,"Poll"]].map(([ic,l],i)=>(
-              <button key={l} title={l} style={{ width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",background:"transparent",border:"none",borderRadius:6,color:"#64748B",cursor:"pointer" }}
-                onMouseEnter={e=>{e.currentTarget.style.background="#111420";e.currentTarget.style.color="#E2E8F0";}}
-                onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color="#64748B";}}>
-                {ic}
-              </button>
-            ))}
+          <div style={{ display:"flex",alignItems:"center",padding:"8px 16px",gap:6,borderBottom:"1px solid #0F1118",flexShrink:0 }}>
+            <button onClick={()=>addElement("text")} style={{ ...btnGhost,padding:"6px 10px",fontSize:12 }}><IC.Text /> Text</button>
+            <button onClick={()=>addElement("shape")} style={{ ...btnGhost,padding:"6px 10px",fontSize:12 }}><IC.Square /> Shape</button>
+            <button onClick={()=>addElement("circle")} style={{ ...btnGhost,padding:"6px 10px",fontSize:12 }}><IC.Circle /> Circle</button>
+            <button onClick={()=>addElement("image")} style={{ ...btnGhost,padding:"6px 10px",fontSize:12 }}><IC.Image /> Image</button>
+            <button onClick={()=>addElement("poll")} style={{ ...btnGhost,padding:"6px 10px",fontSize:12 }}><IC.Poll /> Poll</button>
+
+            <div style={{ width:1,height:22,background:"#131520",margin:"0 6px" }} />
+            <button onClick={deleteSelected} disabled={!selectedId} style={{ ...btnGhost,padding:"6px 10px",fontSize:12,opacity:selectedId?1:.5,borderColor:"#F43F5E40",color:"#F43F5E" }}><IC.Trash /> Delete element</button>
+
+            <div style={{ marginLeft:"auto",fontSize:12,color:"#4a5070" }}>
+              Auto-saved locally ✓
+            </div>
           </div>
+
           <div style={{ flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:28 }}>
-            <div style={{ position:"relative",width:740,height:416,background:slides[activeSlide].bg,borderRadius:10,boxShadow:"0 0 0 1px #1e223540,0 20px 50px #00000050",overflow:"hidden" }}>
-              {slides[activeSlide].elements.map((el,i)=>{
-                if(el.type==="text") return <div key={i} style={{ position:"absolute",left:el.x,top:el.y,fontSize:el.size,fontWeight:el.bold?"700":"400",color:el.color||"#E2E8F0",fontFamily:"'Outfit',sans-serif",cursor:"move" }}>{el.text}</div>;
-                if(el.type==="shape") return <div key={i} style={{ position:"absolute",left:el.x,top:el.y,width:el.w,height:el.h,background:el.color,borderRadius:2 }} />;
-                if(el.type==="poll") return (
-                  <div key={i} style={{ position:"absolute",left:el.x,top:el.y,width:640,display:"flex",flexDirection:"column",gap:10 }}>
-                    {["Option A","Option B","Option C","Option D"].map((o,j)=>(
-                      <div key={j} style={{ position:"relative",background:"#151825",borderRadius:10,padding:"12px 16px",border:"1px solid #1e2235",overflow:"hidden" }}>
-                        <div style={{ position:"absolute",left:0,top:0,bottom:0,width:`${[42,28,18,12][j]}%`,background:`${["#6366F1","#8B5CF6","#EC4899","#06B6D4"][j]}15`,borderRadius:10 }} />
-                        <div style={{ position:"relative",display:"flex",justifyContent:"space-between" }}>
-                          <span style={{ fontSize:14,color:"#E2E8F0" }}>{o}</span>
-                          <span style={{ fontSize:13,fontWeight:600,color:["#6366F1","#8B5CF6","#EC4899","#06B6D4"][j],fontFamily:"'JetBrains Mono'" }}>{[42,28,18,12][j]}%</span>
+            <div
+              onMouseDown={()=>setSelectedId(null)}
+              style={{ position:"relative",width:740,height:416,background:slides[activeSlide].bg,borderRadius:10,boxShadow:"0 0 0 1px #1e223540,0 20px 50px #00000050",overflow:"hidden" }}
+            >
+              {slides[activeSlide].elements.map((el)=> {
+                const isSel = el.id === selectedId;
+
+                if(el.type==="text"){
+                  return (
+                    <div
+                      key={el.id}
+                      onMouseDown={(e)=>onMouseDownEl(e, el)}
+                      onDoubleClick={()=>{
+                        const v = prompt("Edit text:", el.text);
+                        if (v !== null) updateSelected({ text: v });
+                      }}
+                      style={{
+                        position:"absolute",left:el.x,top:el.y,
+                        fontSize:el.size,fontWeight:el.bold?"700":"400",
+                        color:el.color||"#E2E8F0",
+                        fontFamily:"'Outfit',sans-serif",
+                        cursor:"move",
+                        outline: isSel ? "2px solid #6366F1" : "none",
+                        outlineOffset: 4,
+                        padding: 2,
+                        userSelect:"none"
+                      }}
+                    >
+                      {el.text}
+                    </div>
+                  );
+                }
+
+                if(el.type==="shape"){
+                  return (
+                    <div
+                      key={el.id}
+                      onMouseDown={(e)=>onMouseDownEl(e, el)}
+                      style={{
+                        position:"absolute",left:el.x,top:el.y,
+                        width:el.w,height:el.h,background:el.color,
+                        borderRadius:2,cursor:"move",
+                        outline: isSel ? "2px solid #6366F1" : "none",
+                        outlineOffset: 4
+                      }}
+                    />
+                  );
+                }
+
+                if(el.type==="circle"){
+                  return (
+                    <div
+                      key={el.id}
+                      onMouseDown={(e)=>onMouseDownEl(e, el)}
+                      style={{
+                        position:"absolute",left:el.x,top:el.y,
+                        width:el.w,height:el.h,background:el.color,
+                        borderRadius:"50%",cursor:"move",
+                        outline: isSel ? "2px solid #6366F1" : "none",
+                        outlineOffset: 4
+                      }}
+                    />
+                  );
+                }
+
+                if(el.type==="image"){
+                  return (
+                    <div
+                      key={el.id}
+                      onMouseDown={(e)=>onMouseDownEl(e, el)}
+                      style={{
+                        position:"absolute",left:el.x,top:el.y,
+                        width:el.w,height:el.h,
+                        background:"#111420",
+                        border:"1px dashed #2a2e45",
+                        borderRadius:10,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        color:"#4a5070",fontSize:12,cursor:"move",
+                        outline: isSel ? "2px solid #6366F1" : "none",
+                        outlineOffset: 4
+                      }}
+                    >
+                      {el.url ? <img src={el.url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover",borderRadius:10 }} /> : "Double-click to set image URL"}
+                    </div>
+                  );
+                }
+
+                if(el.type==="poll"){
+                  return (
+                    <div
+                      key={el.id}
+                      onMouseDown={(e)=>onMouseDownEl(e, el)}
+                      style={{
+                        position:"absolute",left:el.x,top:el.y,width:520,
+                        display:"flex",flexDirection:"column",gap:10,
+                        cursor:"move",
+                        outline: isSel ? "2px solid #6366F1" : "none",
+                        outlineOffset: 6,
+                        padding: 2
+                      }}
+                    >
+                      {(el.options || ["Option A","Option B","Option C","Option D"]).map((o,j)=>(
+                        <div key={j} style={{ position:"relative",background:"#151825",borderRadius:10,padding:"12px 16px",border:"1px solid #1e2235",overflow:"hidden" }}>
+                          <div style={{ position:"relative",display:"flex",justifyContent:"space-between" }}>
+                            <span style={{ fontSize:14,color:"#E2E8F0" }}>{o}</span>
+                            <span style={{ fontSize:13,fontWeight:600,color:"#6366F1",fontFamily:"'JetBrains Mono'" }}>—</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                );
+                      ))}
+                    </div>
+                  );
+                }
+
                 return null;
               })}
             </div>
@@ -429,9 +653,116 @@ function EditorPage() {
         </div>
 
         {/* Properties */}
-        <div style={{ width:220,background:"#0A0C12",borderLeft:"1px solid #111420",padding:"14px",flexShrink:0,overflow:"auto" }}>
+        <div style={{ width:260,background:"#0A0C12",borderLeft:"1px solid #111420",padding:"14px",flexShrink:0,overflow:"auto" }}>
           <div style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:".08em",color:"#4a5070",marginBottom:12 }}>Properties</div>
-          <div style={{ textAlign:"center",padding:"40px 0",color:"#4a5070",fontSize:13 }}>Select an element<br/>to edit properties</div>
+
+          {!selectedEl ? (
+            <div style={{ textAlign:"center",padding:"40px 0",color:"#4a5070",fontSize:13 }}>
+              Click an element to edit properties
+            </div>
+          ) : (
+            <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+              <div style={{ fontSize:13,color:"#94A3B8" }}>
+                <b style={{ color:"#E2E8F0" }}>{selectedEl.type.toUpperCase()}</b>
+              </div>
+
+              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+                <div>
+                  <label style={lbl}>X</label>
+                  <input value={Math.round(selectedEl.x)} onChange={e=>updateSelected({ x: Number(e.target.value||0) })} style={{...inputSt,width:"100%"}} />
+                </div>
+                <div>
+                  <label style={lbl}>Y</label>
+                  <input value={Math.round(selectedEl.y)} onChange={e=>updateSelected({ y: Number(e.target.value||0) })} style={{...inputSt,width:"100%"}} />
+                </div>
+              </div>
+
+              {selectedEl.type === "text" && (
+                <>
+                  <div>
+                    <label style={lbl}>Text</label>
+                    <textarea value={selectedEl.text} onChange={e=>updateSelected({ text: e.target.value })} style={{...inputSt,width:"100%",minHeight:90,resize:"vertical"}} />
+                    <div style={{ fontSize:11,color:"#4a5070",marginTop:6 }}>Tip: double-click text on slide to edit quickly.</div>
+                  </div>
+
+                  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+                    <div>
+                      <label style={lbl}>Size</label>
+                      <input value={selectedEl.size} onChange={e=>updateSelected({ size: Number(e.target.value||16) })} style={{...inputSt,width:"100%"}} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Bold</label>
+                      <select value={selectedEl.bold ? "yes" : "no"} onChange={e=>updateSelected({ bold: e.target.value === "yes" })} style={{...inputSt,width:"100%",cursor:"pointer"}}>
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={lbl}>Color (hex)</label>
+                    <input value={selectedEl.color||"#E2E8F0"} onChange={e=>updateSelected({ color: e.target.value })} style={{...inputSt,width:"100%"}} />
+                  </div>
+                </>
+              )}
+
+              {(selectedEl.type === "shape" || selectedEl.type === "circle" || selectedEl.type === "image") && (
+                <>
+                  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+                    <div>
+                      <label style={lbl}>Width</label>
+                      <input value={selectedEl.w} onChange={e=>updateSelected({ w: Number(e.target.value||100) })} style={{...inputSt,width:"100%"}} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Height</label>
+                      <input value={selectedEl.h} onChange={e=>updateSelected({ h: Number(e.target.value||100) })} style={{...inputSt,width:"100%"}} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {(selectedEl.type === "shape" || selectedEl.type === "circle") && (
+                <div>
+                  <label style={lbl}>Color (hex)</label>
+                  <input value={selectedEl.color||"#6366F1"} onChange={e=>updateSelected({ color: e.target.value })} style={{...inputSt,width:"100%"}} />
+                </div>
+              )}
+
+              {selectedEl.type === "image" && (
+                <div>
+                  <label style={lbl}>Image URL</label>
+                  <input
+                    value={selectedEl.url || ""}
+                    onChange={e=>updateSelected({ url: e.target.value })}
+                    placeholder="https://..."
+                    style={{...inputSt,width:"100%"}}
+                    onDoubleClick={()=>{
+                      const v = prompt("Paste image URL:", selectedEl.url || "");
+                      if (v !== null) updateSelected({ url: v });
+                    }}
+                  />
+                  <div style={{ fontSize:11,color:"#4a5070",marginTop:6 }}>Tip: double-click the image box on slide.</div>
+                </div>
+              )}
+
+              {selectedEl.type === "poll" && (
+                <div>
+                  <label style={lbl}>Poll options (one per line)</label>
+                  <textarea
+                    value={(selectedEl.options||[]).join("\n")}
+                    onChange={e=>updateSelected({ options: e.target.value.split("\n").filter(Boolean).slice(0,6) })}
+                    style={{...inputSt,width:"100%",minHeight:120,resize:"vertical"}}
+                  />
+                  <div style={{ fontSize:11,color:"#4a5070",marginTop:6 }}>Max 6 options.</div>
+                </div>
+              )}
+
+              <div style={{ height:1,background:"#111420",margin:"6px 0" }} />
+              <button onClick={deleteSelected} style={{ ...btnGhost,justifyContent:"center",borderColor:"#F43F5E40",color:"#F43F5E" }}>
+                <IC.Trash /> Remove element
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -442,6 +773,8 @@ function EditorPage() {
     </div>
   );
 }
+
+const lbl = { fontSize:11,color:"#4a5070",display:"block",marginBottom:4 };
 
 // ═══ PRESENTATION MODE ═══
 function PresentMode() {

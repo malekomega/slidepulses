@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SlidePulse — Interactive Presentations for the Middle East</title>
+  <meta name="description" content="Build interactive presentations with live polls, quizzes, and word clouds. Engage your audience in real-time — at a fraction of the cost. Built for the Middle East.">
+  <meta name="keywords" content="interactive presentations, live polls, quizzes, word clouds, Arabic presentations, MENA, Mentimeter alternative">
+  <meta name="author" content="SlidePulse">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SlidePulse — Interactive Presentations">
+  <meta property="og:description" content="Build interactive presentations with live polls, quizzes, and word clouds. Engage your audience in real-time.">
+  <meta property="og:url" content="https://slidepulse.io">
+  <meta property="og:image" content="https://slidepulse.io/og-image.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SlidePulse — Interactive Presentations">
+  <meta name="twitter:description" content="Build interactive presentations with live polls, quizzes, and word clouds.">
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%236366F1'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='800' font-family='sans-serif'>S</text></svg>">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── RESET & BASE ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body { background: #060810; color: #E2E8F0; font-family: 'DM Sans', sans-serif; line-height: 1.6; overflow-x: hidden; }
+    ::selection { background: #6366F140; color: #fff; }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+
+    /* ─── VARIABLES ─── */
+    :root {
+      --primary: #6366F1;
+      --primary-light: #818CF8;
+      --accent-purple: #8B5CF6;
+      --accent-pink: #EC4899;
+      --accent-cyan: #06B6D4;
+      --accent-green: #22C55E;
+      --accent-orange: #F97316;
+      --accent-red: #F43F5E;
+      --accent-yellow: #EAB308;
+      --bg-dark: #060810;
+      --bg-card: #0A0C12;
+      --bg-input: #0D0F14;
+      --border: #131520;
+      --border-light: #1a1d2e;
+      --text-primary: #E2E8F0;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --text-dim: #4a5070;
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --max-w: 1140px;
+    }
+
+    /* ─── TYPOGRAPHY ─── */
+    h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes gradShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes orbit { from { transform: rotate(0deg) translateX(120px) rotate(0deg); } to { transform: rotate(360deg) translateX(120px) rotate(-360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── NAVBAR ─── */
+    .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #060810dd; backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff06; }
+    .navbar-inner { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; height: 66px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-display); }
+    .logo-text { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-link { background: none; border: none; color: var(--text-muted); font-size: 14px; font-weight: 500; cursor: pointer; position: relative; padding: 0; transition: color 0.2s; }
+    .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--primary); transition: width 0.3s; border-radius: 1px; }
+    .nav-link:hover, .nav-link.active { color: var(--text-primary); }
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-ghost { padding: 8px 18px; background: transparent; border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--text-primary); }
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, var(--primary), #7C3AED); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px #6366F130; }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: #ffffff08; border: 1px solid var(--border-light); border-radius: 10px; color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .btn-secondary:hover { border-color: #6366F150; color: var(--text-primary); }
+    .btn-lg { padding: 14px 32px; font-size: 16px; border-radius: 12px; }
+
+    /* Mobile menu */
+    .mobile-toggle { display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; }
+    .mobile-menu { display: none; position: fixed; top: 66px; left: 0; right: 0; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; }
+    .mobile-menu.open { display: flex; flex-direction: column; gap: 12px; }
+    .mobile-menu .nav-link { padding: 8px 0; display: block; font-size: 16px; }
+
+    /* ─── HERO ─── */
+    .hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 24px 80px; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .hero-orb-1 { position: absolute; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, #6366F112 0%, transparent 70%); top: -20%; right: -10%; }
+    .hero-orb-2 { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, #8B5CF60a 0%, transparent 70%); bottom: 0; left: -5%; }
+    .hero-ring { position: absolute; width: 400px; height: 400px; border-radius: 50%; border: 1px solid #6366F108; top: 20%; left: 50%; transform: translateX(-50%); animation: float 6s ease-in-out infinite; }
+    .hero-content { position: relative; max-width: 860px; text-align: center; z-index: 1; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: #6366F110; border: 1px solid #6366F125; border-radius: 50px; margin-bottom: 28px; font-size: 13px; color: var(--primary-light); font-weight: 500; animation: slideUp 0.6s ease; }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s infinite; }
+    .hero-title { font-size: clamp(40px, 6vw, 72px); font-weight: 800; line-height: 1.08; letter-spacing: -0.03em; margin-bottom: 24px; animation: slideUp 0.7s ease 0.1s both; }
+    .hero-gradient { background: linear-gradient(135deg, #6366F1, #A78BFA, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: gradShift 4s ease infinite; }
+    .hero-subtitle { font-size: clamp(16px, 2vw, 20px); color: var(--text-muted); line-height: 1.6; max-width: 580px; margin: 0 auto 40px; animation: slideUp 0.7s ease 0.2s both; }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; animation: slideUp 0.7s ease 0.3s both; }
+
+    /* Signup form — unused, kept for reference */
+    .signup-form { display: none; }
+    .signup-success { display: none; }
+
+    /* Links as buttons */
+    a.btn-primary, a.btn-secondary, a.btn-ghost { text-decoration: none; display: inline-flex; }
+
+    /* Trust */
+    .trust { margin-top: 56px; animation: slideUp 0.7s ease 0.45s both; }
+    .trust-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 16px; }
+    .trust-logos { display: flex; justify-content: center; gap: 36px; flex-wrap: wrap; opacity: 0.35; }
+    .trust-logos span { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 0.05em; }
+
+    /* ─── SECTIONS ─── */
+    .section { padding: 100px 24px; }
+    .section-inner { max-width: var(--max-w); margin: 0 auto; }
+    .section-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 12px; display: block; }
+    .section-title { font-size: clamp(30px, 4vw, 48px); font-weight: 800; margin-bottom: 16px; }
+    .section-desc { font-size: 18px; color: var(--text-muted); max-width: 550px; }
+    .section-header { text-align: center; margin-bottom: 60px; }
+    .section-header .section-desc { margin: 0 auto; }
+    .section-alt { background: linear-gradient(180deg, transparent, #0A0C1260, transparent); }
+
+    /* ─── FEATURES ─── */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px 26px; transition: all 0.3s; }
+    .feature-card:hover { transform: translateY(-4px); border-color: #6366F130; box-shadow: 0 12px 36px #6366F110; }
+    .feature-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .feature-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .feature-card p { font-size: 15px; color: var(--text-muted); line-height: 1.65; }
+
+    /* ─── HOW IT WORKS ─── */
+    .steps { max-width: 800px; margin: 0 auto; position: relative; }
+    .steps-line { position: absolute; left: 39px; top: 48px; bottom: 48px; width: 2px; background: linear-gradient(180deg, var(--primary), var(--accent-purple), var(--accent-pink)); opacity: 0.2; border-radius: 1px; }
+    .step { display: flex; gap: 28px; align-items: flex-start; padding: 28px 0; position: relative; z-index: 1; }
+    .step-num { width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font-display); font-size: 28px; font-weight: 800; }
+    .step-content { padding-top: 10px; }
+    .step-content h3 { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+    .step-content p { font-size: 16px; color: var(--text-muted); line-height: 1.7; }
+
+    /* ─── LIVE DEMO ─── */
+    .demo-container { max-width: 860px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px #00000040; }
+    .demo-titlebar { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 8px; }
+    .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-body { padding: 40px; background: linear-gradient(135deg, var(--bg-input), #111428); }
+    .demo-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .demo-subtitle { font-size: 14px; color: var(--text-dim); text-align: center; margin-bottom: 28px; }
+    .poll-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 500px; margin: 0 auto; }
+    .poll-option { position: relative; padding: 18px 20px; background: #151825; border-radius: 12px; cursor: pointer; text-align: left; overflow: hidden; transition: all 0.2s; border: 1px solid transparent; }
+    .poll-option:hover { border-color: #ffffff15; }
+    .poll-bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 12px; transition: width 0.6s ease; }
+    .poll-label { position: relative; display: flex; justify-content: space-between; align-items: center; z-index: 1; }
+    .poll-label span:first-child { color: var(--text-primary); font-size: 14px; font-weight: 600; }
+    .poll-label span:last-child { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+    .poll-total { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-dim); }
+
+    /* ─── PRICING ─── */
+    .pricing-toggle { display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 48px; }
+    .pricing-toggle button { padding: 8px 20px; border-radius: 10px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; font-family: var(--font-body); transition: all 0.2s; }
+    .pricing-toggle button.active { background: var(--primary); color: #fff; }
+    .pricing-toggle button:not(.active) { background: transparent; color: var(--text-muted); }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+    .price-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 36px 28px; transition: all 0.3s; position: relative; overflow: hidden; }
+    .price-card:hover { transform: translateY(-4px); border-color: #6366F130; box-shadow: 0 12px 36px #6366F110; }
+    .price-card.popular { border: 1.5px solid #6366F150; }
+    .price-badge { position: absolute; top: 16px; right: -28px; background: linear-gradient(135deg, var(--primary), #7C3AED); padding: 4px 36px; font-size: 11px; font-weight: 700; color: #fff; transform: rotate(45deg); text-transform: uppercase; letter-spacing: 0.05em; }
+    .price-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .price-card .desc { font-size: 14px; color: var(--text-dim); margin-bottom: 20px; }
+    .price-amount { font-family: var(--font-display); font-size: 48px; font-weight: 800; }
+    .price-period { font-size: 15px; color: var(--text-dim); }
+    .price-features { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+    .price-feature { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary); }
+    .price-feature svg { flex-shrink: 0; }
+
+    /* ─── TESTIMONIALS ─── */
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .testimonial-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px 26px; transition: all 0.3s; }
+    .testimonial-card:hover { transform: translateY(-4px); border-color: #6366F130; box-shadow: 0 12px 36px #6366F110; }
+    .testimonial-text { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin: 16px 0 24px; font-style: italic; }
+    .testimonial-stars { display: flex; gap: 3px; margin-bottom: 12px; }
+    .testimonial-name { font-weight: 600; font-size: 15px; }
+    .testimonial-role { font-size: 13px; color: var(--text-dim); }
+
+    /* ─── FAQ ─── */
+    .faq-list { max-width: 720px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-q { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; background: none; border: none; cursor: pointer; text-align: left; font-family: var(--font-body); }
+    .faq-q span:first-child { font-size: 16px; font-weight: 600; color: var(--text-primary); padding-right: 20px; }
+    .faq-q .chevron { color: var(--primary); transition: transform 0.3s; flex-shrink: 0; }
+    .faq-q.open .chevron { transform: rotate(180deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s; opacity: 0; }
+    .faq-a.open { max-height: 200px; opacity: 1; }
+    .faq-a p { font-size: 15px; color: var(--text-muted); line-height: 1.7; padding-bottom: 20px; }
+
+    /* ─── ABOUT ─── */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+    .about-stat { padding: 16px; background: var(--bg-input); border-radius: 12px; border: 1px solid var(--border); }
+    .about-stat .val { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--primary); }
+    .about-stat .label { font-size: 13px; color: var(--text-dim); }
+    .about-visual { position: relative; display: flex; justify-content: center; align-items: center; height: 280px; }
+    .about-ring { position: absolute; border-radius: 50%; border: 1px solid; }
+    .about-core { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #fff; font-family: var(--font-display); z-index: 1; }
+    .orbit-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; top: 50%; left: 50%; }
+
+    /* ─── CONTACT ─── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; }
+    .contact-info { display: flex; flex-direction: column; gap: 14px; }
+    .contact-card { display: flex; align-items: center; gap: 16px; padding: 18px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; transition: all 0.3s; }
+    .contact-card:hover { border-color: #6366F130; transform: translateY(-2px); }
+    .contact-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .social-links { display: flex; gap: 10px; margin-top: 8px; }
+    .social-btn { width: 44px; height: 44px; border-radius: 12px; background: var(--bg-input); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .social-btn:hover { color: var(--primary); border-color: #6366F130; }
+    .contact-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 12px 16px; background: var(--bg-input); border: 1.5px solid var(--border-light); border-radius: 10px; color: var(--text-primary); font-size: 14px; font-family: var(--font-body); outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--primary); }
+    .form-input::placeholder { color: var(--text-dim); }
+    textarea.form-input { resize: vertical; min-height: 100px; }
+
+    /* ─── CTA ─── */
+    .cta-box { max-width: 780px; margin: 0 auto; text-align: center; background: linear-gradient(135deg, #6366F115, #8B5CF610); border: 1px solid #6366F120; border-radius: 24px; padding: 60px 40px; position: relative; overflow: hidden; }
+    .cta-orb { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, #6366F115 0%, transparent 70%); top: -30%; right: -10%; pointer-events: none; }
+
+    /* ─── FOOTER ─── */
+    .footer { border-top: 1px solid var(--bg-input); padding: 60px 24px 30px; }
+    .footer-inner { max-width: var(--max-w); margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+    .footer-brand p { font-size: 14px; color: var(--text-dim); line-height: 1.7; max-width: 280px; margin-top: 16px; }
+    .footer-col h4 { font-family: var(--font-display); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 16px; }
+    .footer-col a { display: block; color: var(--text-muted); font-size: 14px; margin-bottom: 10px; transition: color 0.2s; }
+    .footer-col a:hover { color: var(--text-primary); }
+    .footer-bottom { border-top: 1px solid var(--bg-input); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-bottom span { font-size: 13px; color: var(--text-dim); }
+    .footer-legal { display: flex; gap: 20px; }
+    .footer-legal a { font-size: 13px; color: var(--text-dim); }
+    .footer-legal a:hover { color: var(--text-secondary); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .nav-links, .nav-actions { display: none; }
+      .mobile-toggle { display: flex; }
+      .features-grid, .pricing-grid, .testimonials-grid { grid-template-columns: 1fr; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; }
+      .about-visual { height: 200px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .hero-title { font-size: clamp(32px, 8vw, 50px); }
+      .signup-form { flex-direction: column; }
+      .form-row { grid-template-columns: 1fr; }
+      .step { flex-direction: column; gap: 16px; }
+      .step-num { width: 60px; height: 60px; font-size: 22px; }
+      .poll-grid { grid-template-columns: 1fr; }
+      .section { padding: 70px 20px; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .features-grid, .testimonials-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ NAVBAR ═══ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="#home" class="logo">
+        <div class="logo-mark">S</div>
+        <span class="logo-text">SlidePulse</span>
+      </a>
+      <div class="nav-links">
+        <button class="nav-link" onclick="smoothScroll('features')">Features</button>
+        <button class="nav-link" onclick="smoothScroll('pricing')">Pricing</button>
+        <button class="nav-link" onclick="smoothScroll('about')">About</button>
+        <button class="nav-link" onclick="smoothScroll('faq')">FAQ</button>
+        <button class="nav-link" onclick="smoothScroll('contact')">Contact</button>
+      </div>
+      <div class="nav-actions">
+        <a href="/login" class="btn-ghost">Log in</a>
+        <a href="/signup" class="btn-primary">Get Started Free</a>
+      </div>
+      <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="nav-link" onclick="smoothScroll('features');toggleMobile()">Features</button>
+      <button class="nav-link" onclick="smoothScroll('pricing');toggleMobile()">Pricing</button>
+      <button class="nav-link" onclick="smoothScroll('about');toggleMobile()">About</button>
+      <button class="nav-link" onclick="smoothScroll('faq');toggleMobile()">FAQ</button>
+      <button class="nav-link" onclick="smoothScroll('contact');toggleMobile()">Contact</button>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;display:flex;gap:10px">
+        <a href="/login" class="btn-ghost" style="flex:1;justify-content:center">Log in</a>
+        <a href="/signup" class="btn-primary" style="flex:1;justify-content:center">Sign up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero" id="home">
+    <div class="hero-bg">
+      <div class="hero-orb-1"></div>
+      <div class="hero-orb-2"></div>
+      <div class="hero-ring"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Developed by Syrian One
+      </div>
+      <h1 class="hero-title">Presentations that <span class="hero-gradient">engage</span><br>your audience</h1>
+      <p class="hero-subtitle">Build interactive presentations with live polls, quizzes, and word clouds. Engage your audience in real-time — at a fraction of the cost.</p>
+
+      <!-- CTA Buttons -->
+      <div class="hero-actions">
+        <a href="/signup" class="btn-primary btn-lg">
+          Get Started Free
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="/join" class="btn-secondary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Join a Session
+        </a>
+      </div>
+      <p style="font-size:13px;color:var(--text-dim);margin-top:16px;animation:slideUp .7s ease .4s both">Free forever for up to 5 presentations. No credit card required.</p>
+
+      <div class="trust">
+        <p class="trust-label">Trusted by organizations across the region</p>
+        <div class="trust-logos">
+          <span>UNDP</span><span>UNESCO</span><span>GIZ</span><span>USAID</span><span>World Bank</span><span>UNICEF</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES ═══ -->
+  <section class="section" id="features">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Features</span>
+        <h2 class="section-title">Everything you need to captivate</h2>
+        <p class="section-desc">Powerful tools designed for impactful presentations</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:#6366F112;color:#6366F1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3>Live Interactions</h3>
+          <p>Engage your audience with real-time polls, quizzes, Q&A sessions, and word clouds that update instantly.</p>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.08s">
+          <div class="feature-icon" style="background:#8B5CF612;color:#8B5CF6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <h3>Beautiful Templates</h3>
+          <p>Start with professionally designed templates or build from scratch with our intuitive drag-and-drop editor.</p>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.16s">
+          <div class="feature-icon" style="background:#06B6D412;color:#06B6D4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <h3>Real-time Collaboration</h3>
+          <p>Work together with your team simultaneously. Share, comment, and co-edit presentations in real-time.</p>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.06s">
+          <div class="feature-icon" style="background:#22C55E12;color:#22C55E">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </div>
+          <h3>Analytics & Insights</h3>
+          <p>Track engagement, responses, and audience participation with detailed analytics dashboards.</p>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.14s">
+          <div class="feature-icon" style="background:#F9731612;color:#F97316">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <h3>Arabic & English</h3>
+          <p>Full RTL support for Arabic. Switch between languages seamlessly with complete bidirectional text.</p>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.22s">
+          <div class="feature-icon" style="background:#EC489912;color:#EC4899">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Enterprise Security</h3>
+          <p>Bank-grade encryption, SSO integration, and compliance with regional data sovereignty requirements.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ HOW IT WORKS ═══ -->
+  <section class="section section-alt" id="how-it-works">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">How it works</span>
+        <h2 class="section-title">Three steps to wow</h2>
+      </div>
+      <div class="steps">
+        <div class="steps-line"></div>
+        <div class="step reveal">
+          <div class="step-num" style="background:#6366F110;border:1px solid #6366F125;color:#6366F1">01</div>
+          <div class="step-content"><h3>Create</h3><p>Start with a template or blank canvas. Add text, shapes, images, and interactive elements with our drag-and-drop editor. Full Arabic RTL support included.</p></div>
+        </div>
+        <div class="step reveal" style="transition-delay:.1s">
+          <div class="step-num" style="background:#8B5CF610;border:1px solid #8B5CF625;color:#8B5CF6">02</div>
+          <div class="step-content"><h3>Engage</h3><p>Add live polls, quizzes, word clouds, and Q&A to make your presentation interactive. Your audience participates from their own devices.</p></div>
+        </div>
+        <div class="step reveal" style="transition-delay:.2s">
+          <div class="step-num" style="background:#EC489910;border:1px solid #EC489925;color:#EC4899">03</div>
+          <div class="step-content"><h3>Analyze</h3><p>Present live and watch engagement in real-time. After the session, get detailed analytics on participation, responses, and audience attention.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ LIVE DEMO ═══ -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="demo-container reveal">
+        <div class="demo-titlebar">
+          <div class="demo-dot" style="background:#F43F5E"></div>
+          <div class="demo-dot" style="background:#EAB308"></div>
+          <div class="demo-dot" style="background:#22C55E"></div>
+          <span style="font-size:12px;color:var(--text-dim);margin-left:8px">SlidePulse — Live Demo</span>
+        </div>
+        <div class="demo-body">
+          <h3 class="demo-title">Which feature excites you most?</h3>
+          <p class="demo-subtitle">Click to vote — this is a live demo!</p>
+          <div class="poll-grid" id="pollGrid"></div>
+          <p class="poll-total" id="pollTotal">40 total votes</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PRICING ═══ -->
+  <section class="section section-alt" id="pricing">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Pricing</span>
+        <h2 class="section-title">Simple, transparent pricing</h2>
+        <p class="section-desc" style="margin-bottom:28px">Start free, scale as you grow</p>
+        <div class="pricing-toggle" id="pricingToggle">
+          <button onclick="setPricing(false)">Monthly</button>
+          <button class="active" onclick="setPricing(true)">Annual <span style="font-size:11px;margin-left:4px;opacity:.7">Save 25%</span></button>
+        </div>
+      </div>
+      <div class="pricing-grid" id="pricingGrid"></div>
+    </div>
+  </section>
+
+  <!-- ═══ TESTIMONIALS ═══ -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Testimonials</span>
+        <h2 class="section-title">What our users say</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#6366F120"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+          <p class="testimonial-text">"SlidePulse transformed how we run workshops. The live polling in Arabic is a game-changer for our regional stakeholder meetings."</p>
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-name">Ahmed Al-Rashid</div>
+          <div class="testimonial-role">Program Manager, UNDP Jordan</div>
+        </div>
+        <div class="testimonial-card reveal" style="transition-delay:.08s">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#6366F120"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+          <p class="testimonial-text">"My students are so much more engaged. The quiz feature turns every lecture into an interactive experience. And the pricing is unbeatable."</p>
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-name">Sarah Mansour</div>
+          <div class="testimonial-role">Professor, AUB Lebanon</div>
+        </div>
+        <div class="testimonial-card reveal" style="transition-delay:.16s">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#6366F120"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+          <p class="testimonial-text">"We switched from Mentimeter to SlidePulse and saved 60% on our annual license while getting better Arabic support and local data hosting."</p>
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-name">Omar Haddad</div>
+          <div class="testimonial-role">Training Director, GIZ Iraq</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FAQ ═══ -->
+  <section class="section section-alt" id="faq">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-title">Frequently asked questions</h2>
+      </div>
+      <div class="faq-list" id="faqList"></div>
+    </div>
+  </section>
+
+  <!-- ═══ ABOUT ═══ -->
+  <section class="section" id="about">
+    <div class="section-inner">
+      <div class="about-grid reveal">
+        <div>
+          <span class="section-label">About us</span>
+          <h2 style="font-size:36px;font-weight:800;margin-bottom:20px">Built for the Middle East, made for the world</h2>
+          <p style="font-size:16px;color:var(--text-muted);line-height:1.75;margin-bottom:16px">SlidePulse was born from a simple frustration: existing presentation tools didn't serve Arabic-speaking audiences well and were too expensive for NGOs and educational institutions in the region.</p>
+          <p style="font-size:16px;color:var(--text-muted);line-height:1.75">We set out to build the most accessible, affordable, and powerful interactive presentation tool — with native Arabic support, regional data hosting, and pricing that makes sense.</p>
+          <div class="about-stats">
+            <div class="about-stat"><div class="val">10K+</div><div class="label">Active Users</div></div>
+            <div class="about-stat"><div class="val">150+</div><div class="label">Organizations</div></div>
+            <div class="about-stat"><div class="val">50K+</div><div class="label">Presentations</div></div>
+            <div class="about-stat"><div class="val">99.9%</div><div class="label">Uptime</div></div>
+          </div>
+        </div>
+        <div class="about-visual">
+          <div class="about-ring" style="inset:20px;border-color:#6366F118"></div>
+          <div class="about-ring" style="inset:50px;border-color:#8B5CF615"></div>
+          <div class="about-ring" style="inset:80px;border-color:#6366F110"></div>
+          <div class="about-core">S</div>
+          <div class="orbit-dot" style="background:#6366F1;animation:orbit 8s linear infinite"></div>
+          <div class="orbit-dot" style="background:#8B5CF6;animation:orbit 10s linear 1.5s infinite"></div>
+          <div class="orbit-dot" style="background:#EC4899;animation:orbit 12s linear 3s infinite"></div>
+          <div class="orbit-dot" style="background:#06B6D4;animation:orbit 14s linear 4.5s infinite"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CONTACT ═══ -->
+  <section class="section section-alt" id="contact">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Contact</span>
+        <h2 class="section-title">Get in touch</h2>
+        <p class="section-desc">Have questions? We'd love to hear from you.</p>
+      </div>
+      <div class="contact-grid reveal">
+        <div class="contact-info">
+          <div class="contact-card">
+            <div class="contact-icon" style="background:#6366F112;color:#6366F1">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
+            </div>
+            <div><div style="font-size:12px;color:var(--text-dim)">Email</div><div style="font-size:15px;font-weight:500">hello@slidepulse.io</div></div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-icon" style="background:#8B5CF612;color:#8B5CF6">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            </div>
+            <div><div style="font-size:12px;color:var(--text-dim)">Phone</div><div style="font-size:15px;font-weight:500">+962 6 XXX XXXX</div></div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-icon" style="background:#06B6D412;color:#06B6D4">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div><div style="font-size:12px;color:var(--text-dim)">Office</div><div style="font-size:15px;font-weight:500">Amman, Jordan</div></div>
+          </div>
+          <div class="social-links">
+            <button class="social-btn" aria-label="Twitter"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button>
+            <button class="social-btn" aria-label="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></button>
+          </div>
+        </div>
+        <!-- CONTACT FORM — Replace action with your Formspree/Getform endpoint -->
+        <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" id="contactForm">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">First Name</label><input class="form-input" name="first_name" placeholder="Ahmed" required></div>
+            <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" name="last_name" placeholder="Al-Rashid"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" name="email" placeholder="ahmed@organization.org" required></div>
+          <div class="form-group"><label class="form-label">Subject</label>
+            <select class="form-input" name="subject" style="cursor:pointer"><option>General Inquiry</option><option>Enterprise Sales</option><option>Technical Support</option><option>Partnership</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Message</label><textarea class="form-input" name="message" placeholder="Tell us how we can help..." required></textarea></div>
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;padding:13px">
+            Send Message
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="section">
+    <div class="cta-box reveal">
+      <div class="cta-orb"></div>
+      <h2 style="font-size:36px;font-weight:800;margin-bottom:16px;position:relative">Ready to transform your presentations?</h2>
+      <p style="font-size:18px;color:var(--text-muted);margin-bottom:32px;position:relative">Join thousands of professionals creating engaging, interactive presentations.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <a href="/signup" class="btn-primary btn-lg">
+          Get Started Free
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#pricing" class="btn-secondary btn-lg" onclick="smoothScroll('pricing')">View Pricing</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo"><div class="logo-mark">S</div><span class="logo-text">SlidePulse</span></div>
+          <p>Interactive presentation tool built for the Middle East. Engage your audience with live polls, quizzes, and more.</p>
+        </div>
+        <div class="footer-col"><h4>Product</h4><a href="#">Features</a><a href="#">Pricing</a><a href="#">Templates</a><a href="#">Integrations</a><a href="#">Changelog</a></div>
+        <div class="footer-col"><h4>Company</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Careers</a><a href="#">Contact</a><a href="#">Press</a></div>
+        <div class="footer-col"><h4>Support</h4><a href="#">Help Center</a><a href="#">Documentation</a><a href="#">API</a><a href="#">Status</a><a href="#">Community</a></div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 SlidePulse. All rights reserved.</span>
+        <div class="footer-legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══ JAVASCRIPT ═══ -->
+  <script>
+    // ─── SMOOTH SCROLL ───
+    function smoothScroll(id) { document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' }); }
+
+    // ─── MOBILE MENU ───
+    function toggleMobile() { document.getElementById('mobileMenu').classList.toggle('open'); }
+
+    // ─── SCROLL REVEAL ───
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ─── NAV ACTIVE STATE ───
+    window.addEventListener('scroll', () => {
+      const sections = ['home','features','pricing','about','faq','contact'];
+      let current = 'home';
+      sections.forEach(s => { const el = document.getElementById(s); if (el && el.getBoundingClientRect().top < 200) current = s; });
+      document.querySelectorAll('.nav-link').forEach(l => { l.classList.toggle('active', l.textContent.toLowerCase().includes(current) || (current === 'home' && false)); });
+    }, { passive: true });
+
+    // ─── SIGNUP — Redirect to signup page ───
+    // Signup is handled by /signup page, no JS needed here
+
+    // ─── LIVE POLL DEMO ───
+    let pollVotes = [12, 28, 8, 18];
+    const pollOpts = ['Live Polls', 'Quizzes', 'Word Clouds', 'Q&A Sessions'];
+    const pollColors = ['#6366F1', '#8B5CF6', '#EC4899', '#06B6D4'];
+    function renderPoll() {
+      const total = pollVotes.reduce((a,b) => a+b, 0);
+      const grid = document.getElementById('pollGrid');
+      grid.innerHTML = pollOpts.map((o, i) => {
+        const pct = Math.round(pollVotes[i] / total * 100);
+        return `<button class="poll-option" onclick="votePoll(${i})" style="border-color:${pollColors[i]}30">
+          <div class="poll-bar" style="width:${pct}%;background:${pollColors[i]}15"></div>
+          <div class="poll-label"><span>${o}</span><span style="color:${pollColors[i]}">${pct}%</span></div>
+        </button>`;
+      }).join('');
+      document.getElementById('pollTotal').textContent = total + ' total votes';
+    }
+    function votePoll(i) { pollVotes[i]++; renderPoll(); }
+    renderPoll();
+
+    // ─── PRICING ───
+    let isAnnual = true;
+    function setPricing(annual) {
+      isAnnual = annual;
+      document.querySelectorAll('#pricingToggle button').forEach((b, i) => b.classList.toggle('active', annual ? i === 1 : i === 0));
+      renderPricing();
+    }
+    function renderPricing() {
+      const plans = [
+        { name:'Free', price:0, desc:'For individuals getting started', features:['5 presentations','Unlimited audience','Basic templates','Live polls & quizzes','Community support','SlidePulse branding'], cta:'Get Started', popular:false },
+        { name:'Pro', price: isAnnual?9:12, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Start Pro Trial', popular:true },
+        { name:'Enterprise', price:null, desc:'For large organizations', features:['Everything in Pro','Unlimited participants','SSO & SAML','Admin panel','Regional data hosting','Dedicated support','Custom integrations','SLA guarantee'], cta:'Contact Sales', popular:false },
+      ];
+      document.getElementById('pricingGrid').innerHTML = plans.map((p, i) => `
+        <div class="price-card ${p.popular?'popular':''} reveal visible" style="animation:fadeUp .4s ease ${i*.08}s both">
+          ${p.popular ? '<div class="price-badge">Popular</div>' : ''}
+          <h3>${p.name}</h3>
+          <p class="desc">${p.desc}</p>
+          <div style="margin-bottom:24px">${p.price !== null ? `<span class="price-amount">$${p.price}</span><span class="price-period">/month</span>` : '<span class="price-amount" style="font-size:32px">Custom</span>'}</div>
+          <a href="${p.popular ? '/signup?plan=pro' : p.price === 0 ? '/signup' : '#contact'}" class="${p.popular ? 'btn-primary' : 'btn-secondary'}" style="width:100%;justify-content:center;padding:13px;margin-bottom:24px;text-decoration:none" ${p.price === null ? 'onclick="smoothScroll(\'contact\')"' : ''}>${p.cta}</a>
+          <div class="price-features">${p.features.map(f => `<div class="price-feature"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>${f}</div>`).join('')}</div>
+        </div>
+      `).join('');
+    }
+    renderPricing();
+
+    // ─── FAQ ───
+    const faqs = [
+      ['Is SlidePulse really free to start?','Yes! Our Free plan includes up to 5 presentations with unlimited audience participants. No credit card required.'],
+      ['Does it support Arabic and RTL?','Absolutely. SlidePulse has full Arabic language support with complete RTL (right-to-left) layout. Both the editor and presentation mode work seamlessly in Arabic.'],
+      ['How does the audience participate?','Audience members scan a QR code or visit a short link on their phone or laptop. No app download required — it works in any browser.'],
+      ['Can I import existing presentations?','Yes, you can import PPTX files from PowerPoint or Google Slides. We\'ll convert them and you can add interactive elements on top.'],
+      ['Where is the data hosted?','We offer regional hosting in the Middle East to comply with local data sovereignty requirements. Enterprise customers can choose their preferred hosting region.'],
+      ['How is SlidePulse different from Mentimeter?','SlidePulse offers native Arabic/RTL support, regional data hosting, significantly lower pricing for the MENA market, and a more powerful drag-and-drop editor with live collaboration.'],
+      ['Can I use it for large events?','Our Pro plan supports up to 500 participants, and Enterprise can handle thousands. Real-time interactions work smoothly at any scale.'],
+    ];
+    document.getElementById('faqList').innerHTML = faqs.map(([q, a], i) => `
+      <div class="faq-item reveal" style="transition-delay:${i * 0.04}s">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>${q}</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a"><p>${a}</p></div>
+      </div>
+    `).join('');
+    // Re-observe new elements
+    document.querySelectorAll('.faq-item.reveal').forEach(el => observer.observe(el));
+
+    function toggleFaq(btn) {
+      const isOpen = btn.classList.contains('open');
+      document.querySelectorAll('.faq-q').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
+      if (!isOpen) { btn.classList.add('open'); btn.nextElementSibling.classList.add('open'); }
+    }
+  </script>
+</body>
+</html>

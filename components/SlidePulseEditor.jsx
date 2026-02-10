@@ -495,7 +495,7 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
           <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />
           <ToolBtn icon={<Icons.Share />} label="Share" />
           <ToolBtn icon={<Icons.Download />} label="Export" />
-          <button onClick={() => { setPresenting(true); setPresentSlideIndex(activeSlideIndex); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 16px", background: "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", marginLeft: 8, fontFamily: "'DM Sans', sans-serif" }}>
+          <button onClick={() => { if (presentationId) { window.location.href = "/presenter"; } else { setPresenting(true); setPresentSlideIndex(activeSlideIndex); } }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 16px", background: "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", marginLeft: 8, fontFamily: "'DM Sans', sans-serif" }}>
             <Icons.Play /> Present
           </button>
         </div>

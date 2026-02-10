@@ -821,8 +821,9 @@ function ElementProperties({ el, onUpdate, onDelete }) {
       )}
 
       {el.type === "image" && (
-        <PropSection title="Image URL">
+        <PropSection title="Image">
           <input value={el.src || ""} onChange={e => onUpdate({ src: e.target.value, placeholder: !e.target.value })} placeholder="Paste image URL..." style={inputStyle} />
+          <button onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.onchange = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { onUpdate({ src: ev.target.result, placeholder: false }); }; reader.readAsDataURL(file); }; inp.click(); }} style={{ marginTop: 6, width: "100%", padding: "8px 12px", background: "#6366F115", border: "1px solid #6366F130", borderRadius: 8, color: "#6366F1", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Upload from Computer</button>
         </PropSection>
       )}
 

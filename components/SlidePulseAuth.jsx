@@ -427,7 +427,7 @@ function Dashboard({ user, onLogout }) {
     try {
       const { data, error } = await supabase.from("presentations").insert({ user_id: user.id, title: "Untitled Presentation", slides: JSON.stringify([{ type: "title", content: { title: "Untitled", subtitle: "" } }]), is_shared: false, is_starred: false }).select().single();
       if (error) throw error;
-      setPresentations((prev) => [data, ...prev]);
+      setPresentations((prev) => [data, ...prev]); window.location.href = "/editor?id=" + data.id;
     } catch (e) { alert("Failed to create: " + (e?.message || "")); }
     finally { setCreating(false); }
   };

@@ -145,7 +145,7 @@ function LandingPage() {
         <BgEffects />
         <div style={{ position:"relative",maxWidth:800,margin:"0 auto",animation:"slideUp .7s ease" }}>
           <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",background:"#6366F110",border:"1px solid #6366F125",borderRadius:50,marginBottom:24,fontSize:13,color:"#818CF8",fontWeight:500 }}>
-            <span style={{ width:6,height:6,borderRadius:"50%",background:"#6366F1",animation:"pulse 2s infinite" }} /> Developed by Syrian people
+            <span style={{ width:6,height:6,borderRadius:"50%",background:"#6366F1",animation:"pulse 2s infinite" }} /> Developed by Syrian one
           </div>
           <h1 style={{ fontFamily:"'Outfit'",fontSize:"clamp(38px,5.5vw,68px)",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.03em",margin:"0 0 20px" }}>
             Presentations that <span style={{ background:"linear-gradient(135deg,#6366F1,#A78BFA,#EC4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundSize:"200%",animation:"gradShift 4s ease infinite" }}>engage</span> your audience

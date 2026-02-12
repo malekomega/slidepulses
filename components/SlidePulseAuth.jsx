@@ -408,6 +408,15 @@ function Dashboard({ user, onLogout }) {
   const [loadingData, setLoadingData] = useState(true);
   const [dataError, setDataError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const loadPresentations = useCallback(async () => {
     setLoadingData(true);
@@ -465,8 +474,8 @@ function Dashboard({ user, onLogout }) {
     return (
       <div style={{ display: "flex", height: "100vh", background: "#090B10", fontFamily: "'DM Sans', sans-serif", color: "#E2E8F0" }}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-        <DashSidebar section={sidebarSection} onSection={setSidebarSection} onSettings={() => setSettingsOpen(true)} onLogout={onLogout} initials={initials} user={user} active="settings" />
-        <div style={{ flex: 1, overflow: "auto", padding: "32px 40px" }}>
+        {!isMobile && <DashSidebar section={sidebarSection} onSection={setSidebarSection} onSettings={() => setSettingsOpen(true)} onLogout={onLogout} initials={initials} user={user} active="settings" />}
+        <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "20px 16px" : "32px 40px" }}>
           <button onClick={() => setSettingsOpen(false)} style={{ background: "none", border: "none", color: "#6366F1", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 24 }}>← Back to Dashboard</button>
           <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 700, margin: "0 0 32px" }}>Account Settings</h1>
           <div style={{ maxWidth: 560 }}>
@@ -488,38 +497,48 @@ function Dashboard({ user, onLogout }) {
   }
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#090B10", fontFamily: "'DM Sans', sans-serif", color: "#E2E8F0" }}>
+    <div style={{ display: "flex", height: "100vh", background: "#090B10", fontFamily: "'DM Sans', sans-serif", color: "#E2E8F0", position: "relative" }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-      <DashSidebar section={sidebarSection} onSection={(s) => { setSidebarSection(s); setSettingsOpen(false); }} onSettings={() => setSettingsOpen(true)} onLogout={onLogout} initials={initials} user={user} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px", borderBottom: "1px solid #12141d", flexShrink: 0 }}>
-          <div style={{ position: "relative", width: 320 }}>
-            <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#4a5070" }}><I.Search /></div>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search presentations..." style={{ width: "100%", padding: "10px 12px 10px 40px", background: "#0D0F14", border: "1px solid #151825", borderRadius: 10, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }} />
+      {/* Mobile overlay */}
+      {isMobile && mobileMenu && <div onClick={() => setMobileMenu(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 90 }} />}
+      {/* Sidebar - hidden on mobile unless toggled */}
+      {(!isMobile || mobileMenu) && <div style={{ position: isMobile ? "fixed" : "relative", left: 0, top: 0, bottom: 0, zIndex: isMobile ? 100 : 1, width: isMobile ? "75vw" : 230, maxWidth: 280 }}>
+        <DashSidebar section={sidebarSection} onSection={(s) => { setSidebarSection(s); setSettingsOpen(false); setMobileMenu(false); }} onSettings={() => { setSettingsOpen(true); setMobileMenu(false); }} onLogout={onLogout} initials={initials} user={user} />
+      </div>}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", width: "100%" }}>
+        {/* Top bar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "12px 16px" : "16px 32px", borderBottom: "1px solid #12141d", flexShrink: 0, gap: 10, flexWrap: isMobile ? "wrap" : "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+            {isMobile && <button onClick={() => setMobileMenu(!mobileMenu)} style={{ background: "none", border: "1px solid #1e2235", borderRadius: 8, padding: "8px 10px", color: "#94A3B8", cursor: "pointer", display: "flex", flexShrink: 0 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>}
+            <div style={{ position: "relative", flex: 1, maxWidth: isMobile ? "100%" : 320 }}>
+              <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#4a5070" }}><I.Search /></div>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." style={{ width: "100%", padding: "10px 12px 10px 40px", background: "#0D0F14", border: "1px solid #151825", borderRadius: 10, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }} />
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <div style={{ display: "flex", background: "#0D0F14", borderRadius: 8, border: "1px solid #151825", overflow: "hidden" }}>
               <button onClick={() => setView("grid")} style={{ padding: "7px 10px", background: view === "grid" ? "#151825" : "transparent", border: "none", color: view === "grid" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.Grid /></button>
               <button onClick={() => setView("list")} style={{ padding: "7px 10px", background: view === "list" ? "#151825" : "transparent", border: "none", color: view === "list" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.List /></button>
             </div>
-            <button onClick={handleCreate} disabled={creating} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 20px", background: creating ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 600, cursor: creating ? "wait" : "pointer", fontFamily: "'DM Sans'" }}>
-              {creating ? <div style={{ width: 16, height: 16, border: "2px solid #fff4", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : <><I.Plus /> New Presentation</>}
+            <button onClick={handleCreate} disabled={creating} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "9px 14px" : "9px 20px", background: creating ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 600, cursor: creating ? "wait" : "pointer", fontFamily: "'DM Sans'" }}>
+              {creating ? <div style={{ width: 16, height: 16, border: "2px solid #fff4", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : <><I.Plus /> {!isMobile && "New Presentation"}</>}
             </button>
           </div>
         </div>
-        <div style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 32 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "16px" : "28px 32px" }}>
+          {/* Stats cards */}
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 10 : 14, marginBottom: isMobile ? 20 : 32 }}>
             {[{ label: "Total Presentations", value: presentations.length, icon: <I.Slides />, color: "#6366F1" }, { label: "Total Slides", value: totalSlides, icon: <I.Folder />, color: "#8B5CF6" }, { label: "Shared", value: sharedCount, icon: <I.Users />, color: "#06B6D4" }, { label: "This Week", value: thisWeek, icon: <I.Zap />, color: "#22C55E" }].map((s, i) => (
-              <div key={i} style={{ background: "#0D0F14", border: "1px solid #131520", borderRadius: 14, padding: "18px 20px" }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: s.color + "15", display: "flex", alignItems: "center", justifyContent: "center", color: s.color, marginBottom: 12 }}>{s.icon}</div>
-                <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "'Outfit'" }}>{s.value}</div>
-                <div style={{ fontSize: 12, color: "#4a5070", marginTop: 2 }}>{s.label}</div>
+              <div key={i} style={{ background: "#0D0F14", border: "1px solid #131520", borderRadius: 14, padding: isMobile ? "14px 16px" : "18px 20px" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: s.color + "15", display: "flex", alignItems: "center", justifyContent: "center", color: s.color, marginBottom: 10 }}>{s.icon}</div>
+                <div style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, fontFamily: "'Outfit'" }}>{s.value}</div>
+                <div style={{ fontSize: 11, color: "#4a5070", marginTop: 2 }}>{s.label}</div>
               </div>))}
           </div>
           {dataError && <div style={{ padding: "16px 20px", background: "#F43F5E10", border: "1px solid #F43F5E25", borderRadius: 12, marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ color: "#F43F5E", fontSize: 14 }}>{dataError}</span><button onClick={loadPresentations} style={{ background: "none", border: "1px solid #F43F5E40", borderRadius: 8, padding: "6px 14px", color: "#F43F5E", fontSize: 13, cursor: "pointer" }}>Retry</button></div>}
           {loadingData && <div style={{ textAlign: "center", padding: "60px 0" }}><div style={{ width: 36, height: 36, border: "3px solid #1a1d2e", borderTopColor: "#6366F1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} /><p style={{ color: "#4a5070", fontSize: 14 }}>Loading presentations...</p></div>}
           {!loadingData && !dataError && presentations.length === 0 && <div style={{ textAlign: "center", padding: "60px 0" }}><div style={{ width: 64, height: 64, borderRadius: 16, background: "#6366F112", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#6366F1" }}><I.Slides /></div><h3 style={{ fontFamily: "'Outfit'", fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>No presentations yet</h3><p style={{ color: "#4a5070", fontSize: 14, marginBottom: 20 }}>Create your first presentation to get started</p><button onClick={handleCreate} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", background: "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}><I.Plus /> Create Presentation</button></div>}
-          {!loadingData && filtered.length > 0 && view === "grid" && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>{filtered.map((p, i) => { const grad = GRADIENTS[i % GRADIENTS.length]; let sc = 0; try { const s = typeof p.slides === "string" ? JSON.parse(p.slides) : p.slides; sc = Array.isArray(s) ? s.length : 0; } catch {} return (<div key={p.id} style={{ background: "#0D0F14", border: "1px solid #131520", borderRadius: 14, overflow: "hidden", transition: "all 0.2s" }}><div style={{ height: 120, background: grad, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 36, fontWeight: 800, color: "#ffffff20", fontFamily: "'Outfit'" }}>{sc}</span><button onClick={() => handleToggleStar(p.id, p.is_starred)} style={{ position: "absolute", top: 8, right: 8, background: p.is_starred ? "#EAB30825" : "#00000040", border: "none", borderRadius: 6, padding: 5, cursor: "pointer", display: "flex", color: p.is_starred ? "#EAB308" : "#ffffff60" }}><svg width="14" height="14" viewBox="0 0 24 24" fill={p.is_starred ? "#EAB308" : "none"} stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><div style={{ padding: "12px 14px" }}><div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#4a5070" }}><span>{sc} slides</span><span>{timeAgo(p.updated_at)}</span></div><div style={{ display: "flex", gap: 4, marginTop: 8 }}><a href={"/editor?id=" + p.id} style={{ background: "#6366F120", border: "none", borderRadius: 6, padding: "4px 8px", color: "#6366F1", fontSize: 11, cursor: "pointer", textDecoration: "none" }}>Edit</a><button onClick={() => handleDuplicate(p)} style={{ background: "#151825", border: "none", borderRadius: 6, padding: "4px 8px", color: "#64748B", fontSize: 11, cursor: "pointer" }}>Duplicate</button>
+          {!loadingData && filtered.length > 0 && view === "grid" && <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>{filtered.map((p, i) => { const grad = GRADIENTS[i % GRADIENTS.length]; let sc = 0; try { const s = typeof p.slides === "string" ? JSON.parse(p.slides) : p.slides; sc = Array.isArray(s) ? s.length : 0; } catch {} return (<div key={p.id} style={{ background: "#0D0F14", border: "1px solid #131520", borderRadius: 14, overflow: "hidden", transition: "all 0.2s" }}><div style={{ height: 120, background: grad, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 36, fontWeight: 800, color: "#ffffff20", fontFamily: "'Outfit'" }}>{sc}</span><button onClick={() => handleToggleStar(p.id, p.is_starred)} style={{ position: "absolute", top: 8, right: 8, background: p.is_starred ? "#EAB30825" : "#00000040", border: "none", borderRadius: 6, padding: 5, cursor: "pointer", display: "flex", color: p.is_starred ? "#EAB308" : "#ffffff60" }}><svg width="14" height="14" viewBox="0 0 24 24" fill={p.is_starred ? "#EAB308" : "none"} stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><div style={{ padding: "12px 14px" }}><div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#4a5070" }}><span>{sc} slides</span><span>{timeAgo(p.updated_at)}</span></div><div style={{ display: "flex", gap: 4, marginTop: 8 }}><a href={"/editor?id=" + p.id} style={{ background: "#6366F120", border: "none", borderRadius: 6, padding: "4px 8px", color: "#6366F1", fontSize: 11, cursor: "pointer", textDecoration: "none" }}>Edit</a><button onClick={() => handleDuplicate(p)} style={{ background: "#151825", border: "none", borderRadius: 6, padding: "4px 8px", color: "#64748B", fontSize: 11, cursor: "pointer" }}>Duplicate</button>
 <button onClick={() => handleDelete(p.id)} style={{ background: "#151825", border: "none", borderRadius: 6, padding: "4px 8px", color: "#F43F5E", fontSize: 11, cursor: "pointer" }}>Delete</button></div></div></div>); })}</div>}
           {!loadingData && filtered.length > 0 && view === "list" && <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>{filtered.map((p, i) => { const grad = GRADIENTS[i % GRADIENTS.length]; let sc = 0; try { const s = typeof p.slides === "string" ? JSON.parse(p.slides) : p.slides; sc = Array.isArray(s) ? s.length : 0; } catch {} return (<div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: "#0D0F14", border: "1px solid #131520", borderRadius: 10 }}><div style={{ width: 40, height: 26, borderRadius: 6, background: grad, flexShrink: 0 }} /><div style={{ flex: 1, fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div><span style={{ fontSize: 12, color: "#4a5070" }}>{sc} slides</span><span style={{ fontSize: 12, color: "#4a5070" }}>{timeAgo(p.updated_at)}</span><button onClick={() => handleToggleStar(p.id, p.is_starred)} style={{ background: "none", border: "none", cursor: "pointer", color: p.is_starred ? "#EAB308" : "#4a5070", padding: 4, display: "flex" }}><svg width="14" height="14" viewBox="0 0 24 24" fill={p.is_starred ? "#EAB308" : "none"} stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button><button onClick={() => handleDuplicate(p)} style={{ background: "none", border: "none", cursor: "pointer", color: "#4a5070", padding: 4, display: "flex" }}><I.Copy /></button><button onClick={() => handleDelete(p.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#4a5070", padding: 4, display: "flex" }}><I.Trash /></button></div>); })}</div>}
         </div>
@@ -536,7 +555,7 @@ function DashSidebar({ section, onSection, onSettings, onLogout, initials, user,
     { key: "shared", label: "Shared", icon: <I.Users /> },
   ];
   return (
-    <div style={{ width: 230, background: "#0D0F14", borderRight: "1px solid #12141d", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+    <div style={{ width: "100%", height: "100%", background: "#0D0F14", borderRight: "1px solid #12141d", display: "flex", flexDirection: "column", flexShrink: 0 }}>
       <div style={{ padding: "18px 20px 24px" }}><Logo size={28} /></div>
       <nav style={{ flex: 1, padding: "0 12px", display: "flex", flexDirection: "column", gap: 2 }}>
         {items.map(it => (

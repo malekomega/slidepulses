@@ -127,6 +127,22 @@ export default function SlidePulseEditor() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
+  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const m = window.innerWidth < 900;
+      setIsMobile(m);
+      if (m) { setShowLeftPanel(false); setShowRightPanel(false); }
+      else { setShowLeftPanel(true); setShowRightPanel(true); }
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const [presentationId, setPresentationId] = useState(null);
   const [presentationTitle, setPresentationTitle] = useState("Untitled Presentation");
   const [saving, setSaving] = useState(false);
@@ -477,33 +493,30 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
       {/* ─── TOP BAR ─── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 52, background: "#0D0F14", borderBottom: "1px solid #151825", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 6, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>S</div>
-<a href="/dashboard" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em", color: "#E2E8F0", textDecoration: "none", cursor: "pointer" }}>← SlidePulse</a>
-            <input value={presentationTitle} onChange={(e) => setPresentationTitle(e.target.value)} style={{ marginLeft: 16, padding: "5px 10px", background: "#0D0F14", border: "1px solid #1a1d2e", borderRadius: 6, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none", width: 200 }} />
-            <button onClick={handleSave} disabled={saving} style={{ marginLeft: 8, padding: "6px 16px", background: saving ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 600, cursor: saving ? "wait" : "pointer", fontFamily: "'DM Sans'" }}>{saving ? "Saving..." : "Save"}</button>
-            {lastSaved && <span style={{ marginLeft: 8, fontSize: 11, color: "#4a5070" }}>Saved {lastSaved.toLocaleTimeString()}</span>}
-          </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 10px", height: 52, background: "#0D0F14", borderBottom: "1px solid #151825", flexShrink: 0, gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+          <a href="/dashboard" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: isMobile ? 14 : 16, color: "#E2E8F0", textDecoration: "none", cursor: "pointer", whiteSpace: "nowrap" }}>← S</a>
+          <input value={presentationTitle} onChange={(e) => setPresentationTitle(e.target.value)} style={{ padding: "5px 8px", background: "#0D0F14", border: "1px solid #1a1d2e", borderRadius: 6, color: "#E2E8F0", fontSize: 13, fontFamily: "'DM Sans'", outline: "none", width: isMobile ? 100 : 200, minWidth: 60 }} />
+          <button onClick={handleSave} disabled={saving} style={{ padding: "6px 12px", background: saving ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 600, cursor: saving ? "wait" : "pointer", fontFamily: "'DM Sans'", whiteSpace: "nowrap" }}>{saving ? "..." : "Save"}</button>
+          {!isMobile && lastSaved && <span style={{ fontSize: 11, color: "#4a5070" }}>Saved {lastSaved.toLocaleTimeString()}</span>}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <ToolBtn icon={<Icons.Undo />} label="Undo" onClick={undo} />
-          <ToolBtn icon={<Icons.Redo />} label="Redo" onClick={redo} />
-          <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />
-          <ToolBtn icon={<Icons.Grid />} label="Grid" active={showGrid} onClick={() => setShowGrid(!showGrid)} />
-          <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />
-          <ToolBtn icon={<Icons.Share />} label="Share" onClick={() => { if (!presentationId) { return; } const url = window.location.origin + "/join"; navigator.clipboard.writeText(url); const toast = document.createElement("div"); toast.textContent = "✓ Share link copied to clipboard"; toast.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22C55E;color:#fff;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;z-index:99999;animation:fadeUp 0.3s ease"; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2500); }} />
-          <ToolBtn icon={<Icons.Download />} label="Export" onClick={async () => { const PptxGenJS = (await import("pptxgenjs")).default; const pptx = new PptxGenJS(); pptx.layout = "LAYOUT_WIDE"; slides.forEach((s, si) => { const sl = pptx.addSlide(); sl.background = { color: "0F1117" }; (s.elements || []).forEach((el) => { if (el.type === "text") { sl.addText(el.content || "", { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fontSize: (el.fontSize || 16) * 0.6, color: (el.color || "#E2E8F0").replace("#", ""), fontFace: "Arial", bold: el.fontWeight === "700" || el.fontWeight === "600", align: el.textAlign || "left" }); } else if (el.type === "shape") { sl.addShape(pptx.ShapeType.rect, { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fill: { color: (el.fill || "#6366F1").replace("#", "") } }); } else if (el.type === "interactive") { sl.addText((el.interactiveType === "poll" ? "📊 " : el.interactiveType === "quiz" ? "❓ " : "☁️ ") + (el.question || ""), { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: 0.5, fontSize: 14, color: "6366F1", fontFace: "Arial", bold: true }); if (el.options) { el.options.forEach((opt, oi) => { sl.addText(String.fromCharCode(65 + oi) + ". " + opt, { x: el.x / 100, y: (el.y + 50 + oi * 35) / 100, w: el.w / 100, h: 0.35, fontSize: 12, color: "E2E8F0", fontFace: "Arial" }); }); } } }); }); pptx.writeFile({ fileName: (presentationTitle || "presentation") + ".pptx" }); }} />
-          <button onClick={() => { if (presentationId) { window.location.href = "/presenter"; } else { setPresenting(true); setPresentSlideIndex(activeSlideIndex); } }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 16px", background: "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", marginLeft: 8, fontFamily: "'DM Sans', sans-serif" }}>
-            <Icons.Play /> Present
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          {!isMobile && <ToolBtn icon={<Icons.Undo />} label="Undo" onClick={undo} />}
+          {!isMobile && <ToolBtn icon={<Icons.Redo />} label="Redo" onClick={redo} />}
+          {!isMobile && <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />}
+          {!isMobile && <ToolBtn icon={<Icons.Grid />} label="Grid" active={showGrid} onClick={() => setShowGrid(!showGrid)} />}
+          {!isMobile && <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />}
+          <ToolBtn icon={<Icons.Share />} label={isMobile ? "" : "Share"} onClick={() => { if (!presentationId) { return; } const url = window.location.origin + "/join"; navigator.clipboard.writeText(url); const toast = document.createElement("div"); toast.textContent = "✓ Link copied"; toast.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22C55E;color:#fff;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;z-index:99999"; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2500); }} />
+          <ToolBtn icon={<Icons.Download />} label={isMobile ? "" : "Export"} onClick={async () => { const PptxGenJS = (await import("pptxgenjs")).default; const pptx = new PptxGenJS(); pptx.layout = "LAYOUT_WIDE"; slides.forEach((s, si) => { const sl = pptx.addSlide(); sl.background = { color: "0F1117" }; (s.elements || []).forEach((el) => { if (el.type === "text") { sl.addText(el.content || "", { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fontSize: (el.fontSize || 16) * 0.6, color: (el.color || "#E2E8F0").replace("#", ""), fontFace: "Arial", bold: el.fontWeight === "700" || el.fontWeight === "600", align: el.textAlign || "left" }); } else if (el.type === "shape") { sl.addShape(pptx.ShapeType.rect, { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fill: { color: (el.fill || "#6366F1").replace("#", "") } }); } else if (el.type === "interactive") { sl.addText((el.interactiveType === "poll" ? "📊 " : el.interactiveType === "quiz" ? "❓ " : "☁️ ") + (el.question || ""), { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: 0.5, fontSize: 14, color: "6366F1", fontFace: "Arial", bold: true }); if (el.options) { el.options.forEach((opt, oi) => { sl.addText(String.fromCharCode(65 + oi) + ". " + opt, { x: el.x / 100, y: (el.y + 50 + oi * 35) / 100, w: el.w / 100, h: 0.35, fontSize: 12, color: "E2E8F0", fontFace: "Arial" }); }); } } }); }); pptx.writeFile({ fileName: (presentationTitle || "presentation") + ".pptx" }); }} />
+          <button onClick={() => { if (presentationId) { window.location.href = "/presenter"; } else { setPresenting(true); setPresentSlideIndex(activeSlideIndex); } }} style={{ display: "flex", alignItems: "center", gap: 4, padding: isMobile ? "6px 10px" : "6px 16px", background: "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+            <Icons.Play /> {!isMobile && "Present"}
           </button>
         </div>
       </div>
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
         {/* ─── LEFT: SLIDE PANEL ─── */}
-        <div style={{ width: 210, background: "#0D0F14", borderRight: "1px solid #151825", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        {showLeftPanel && <div style={{ width: isMobile ? "75vw" : 210, maxWidth: 280, background: "#0D0F14", borderRight: "1px solid #151825", display: "flex", flexDirection: "column", flexShrink: 0, position: isMobile ? "absolute" : "relative", left: 0, top: 0, bottom: 0, zIndex: isMobile ? 50 : 1, height: isMobile ? "100%" : "auto" }}>
           <div style={{ padding: "10px 12px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#4a5070" }}>Slides</span>
             <button onClick={() => setShowTemplatePanel(!showTemplatePanel)} style={{ background: showTemplatePanel ? "#6366F122" : "#151825", border: "1px solid #1e2235", borderRadius: 6, color: showTemplatePanel ? "#6366F1" : "#94A3B8", padding: "3px 8px", fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
@@ -547,12 +560,13 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
               </div>
             ))}
           </div>
-        </div>
+        </div>}
+        {isMobile && showLeftPanel && <div onClick={() => setShowLeftPanel(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 40 }} />}
 
         {/* ─── CENTER: CANVAS ─── */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#090B10", overflow: "hidden" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#090B10", overflow: "hidden", position: "relative" }}>
           {/* Toolbar */}
-          <div style={{ display: "flex", alignItems: "center", padding: "8px 16px", gap: 2, borderBottom: "1px solid #12141d", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", padding: "8px 12px", gap: 2, borderBottom: "1px solid #12141d", flexShrink: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <ToolBtn icon={<Icons.Text />} label="Text" onClick={() => addElement("text")} />
             <ToolBtn icon={<Icons.Square />} label="Rectangle" onClick={() => addElement("shape", { shapeType: "rect" })} />
             <ToolBtn icon={<Icons.Circle />} label="Circle" onClick={() => addElement("shape", { shapeType: "circle", w: 120, h: 120 })} />
@@ -601,7 +615,7 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
         </div>
 
         {/* ─── RIGHT: PROPERTIES PANEL ─── */}
-        <div style={{ width: 260, background: "#0D0F14", borderLeft: "1px solid #151825", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden" }}>
+        {showRightPanel && <div style={{ width: isMobile ? "75vw" : 260, maxWidth: 300, background: "#0D0F14", borderLeft: "1px solid #151825", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", position: isMobile ? "absolute" : "relative", right: 0, top: 0, bottom: 0, zIndex: isMobile ? 50 : 1, height: isMobile ? "100%" : "auto" }}>
           <div style={{ display: "flex", borderBottom: "1px solid #151825" }}>
             {["properties", "slide"].map(tab => (
               <button key={tab} onClick={() => setRightPanel(tab)}
@@ -623,13 +637,20 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
               </div>
             )}
           </div>
-        </div>
+        </div>}
+        {isMobile && showRightPanel && <div onClick={() => setShowRightPanel(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 40 }} />}
       </div>
 
       {/* ─── BOTTOM STATUS BAR ─── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 28, background: "#0D0F14", borderTop: "1px solid #151825", flexShrink: 0 }}>
-        <span style={{ fontSize: 10, color: "#4a5070" }}>Slide {activeSlideIndex + 1} of {slides.length}</span>
-        <span style={{ fontSize: 10, color: "#4a5070" }}>{activeSlide?.elements.length} elements • {zoom === 1 ? "100%" : `${Math.round(zoom * 100)}%`}</span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 36, background: "#0D0F14", borderTop: "1px solid #151825", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {isMobile && <button onClick={() => { setShowLeftPanel(!showLeftPanel); setShowRightPanel(false); }} style={{ background: showLeftPanel ? "#6366F120" : "transparent", border: "1px solid #1e2235", borderRadius: 6, padding: "4px 8px", color: showLeftPanel ? "#6366F1" : "#64748B", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>Slides</button>}
+          <span style={{ fontSize: 10, color: "#4a5070" }}>Slide {activeSlideIndex + 1} of {slides.length}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 10, color: "#4a5070" }}>{activeSlide?.elements.length} elements</span>
+          {isMobile && <button onClick={() => { setShowRightPanel(!showRightPanel); setShowLeftPanel(false); }} style={{ background: showRightPanel ? "#6366F120" : "transparent", border: "1px solid #1e2235", borderRadius: 6, padding: "4px 8px", color: showRightPanel ? "#6366F1" : "#64748B", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>Properties</button>}
+        </div>
       </div>
     </div>
   );

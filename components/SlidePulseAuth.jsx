@@ -614,7 +614,7 @@ function DashSidebar({ section, onSection, onSettings, onLogout, initials, user,
     { key: "shared", label: "Shared", icon: <I.Users /> },
   ];
   return (
-    <div style={{ width: "100%", height: "100%", background: "#0D0F14", borderRight: "1px solid #12141d", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+    <div style={{ width: 230, height: "100%", background: "#0D0F14", borderRight: "1px solid #12141d", display: "flex", flexDirection: "column", flexShrink: 0 }}>
       <div style={{ padding: "18px 20px 24px" }}><Logo size={28} /></div>
       <nav style={{ flex: 1, padding: "0 12px", display: "flex", flexDirection: "column", gap: 2 }}>
         {items.map(it => (

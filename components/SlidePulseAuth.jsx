@@ -476,38 +476,58 @@ function Dashboard({ user, onLogout }) {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
         {!isMobile && <DashSidebar section={sidebarSection} onSection={setSidebarSection} onSettings={() => setSettingsOpen(true)} onLogout={onLogout} initials={initials} user={user} active="settings" />}
         <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "20px 16px" : "32px 40px" }}>
-          <button onClick={() => setSettingsOpen(false)} style={{ background: "none", border: "none", color: "#6366F1", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 24 }}>← Back to Dashboard</button>
+          <button onClick={() => setSettingsOpen(false)} style={{ background: "none", border: "none", color: "#6366F1", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 24 }}>{"← Back to Dashboard"}</button>
           <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 700, margin: "0 0 32px" }}>Account Settings</h1>
-          <div style={{ maxWidth: 560 }}>
-<SettingsCard title="Profile">
+          <div style={{ maxWidth: 560, display: "flex", flexDirection: "column", gap: 16 }}>
+            <SettingsCard title="Profile">
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
                 <div style={{ width: 64, height: 64, borderRadius: 16, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#fff" }}>{initials}</div>
-                <div><div style={{ fontSize: 18, fontWeight: 600 }}>{user?.name}</div><div style={{ fontSize: 13, color: "#64748B" }}>{user?.email}</div></div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 600 }}>{user?.name}</div>
+                  <div style={{ fontSize: 13, color: "#64748B" }}>{user?.email}</div>
+                </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <SettingsInput label="First Name" value={(user?.name || "").split(" ")[0] || ""} />
                 <SettingsInput label="Last Name" value={(user?.name || "").split(" ").slice(1).join(" ") || ""} />
-                <div style={{ gridColumn: "1 / -1" }}><SettingsInput label="Email" value={user?.email || ""} /></div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <SettingsInput label="Email" value={user?.email || ""} />
+                </div>
               </div>
             </SettingsCard>
-            <div style={{ height: 16 }} />
+
             <SettingsCard title="Preferences">
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <ToggleSetting label="Dark Mode" desc="Always use dark theme" defaultOn={true} />
                 <ToggleSetting label="Auto-save" desc="Automatically save changes every 30 seconds" defaultOn={true} />
                 <ToggleSetting label="Show Grid by Default" desc="Display alignment grid in the editor" defaultOn={false} />
-                <div><label style={{ fontSize: 12, color: "#4a5070", display: "block", marginBottom: 6 }}>Default Slide Transition</label><select style={{ width: "100%", padding: "10px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none" }}><option>None</option><option>Fade</option><option>Slide</option><option>Zoom</option></select></div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#4a5070", display: "block", marginBottom: 6 }}>Default Slide Transition</label>
+                  <select style={{ width: "100%", padding: "10px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none" }}>
+                    <option>None</option><option>Fade</option><option>Slide</option><option>Zoom</option>
+                  </select>
+                </div>
               </div>
             </SettingsCard>
-            <div style={{ height: 16 }} />
+
             <SettingsCard title="Presentation Defaults">
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <div><label style={{ fontSize: 12, color: "#4a5070", display: "block", marginBottom: 6 }}>Default Slide Size</label><select style={{ width: "100%", padding: "10px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none" }}><option>Widescreen (16:9)</option><option>Standard (4:3)</option><option>Custom</option></select></div>
-                <div><label style={{ fontSize: 12, color: "#4a5070", display: "block", marginBottom: 6 }}>Default Font</label><select style={{ width: "100%", padding: "10px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none" }}><option>DM Sans</option><option>Outfit</option><option>Inter</option><option>Arial</option></select></div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#4a5070", display: "block", marginBottom: 6 }}>Default Slide Size</label>
+                  <select style={{ width: "100%", padding: "10px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none" }}>
+                    <option>Widescreen (16:9)</option><option>Standard (4:3)</option><option>Custom</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#4a5070", display: "block", marginBottom: 6 }}>Default Font</label>
+                  <select style={{ width: "100%", padding: "10px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 14, fontFamily: "'DM Sans'", outline: "none" }}>
+                    <option>DM Sans</option><option>Outfit</option><option>Inter</option><option>Arial</option>
+                  </select>
+                </div>
                 <ToggleSetting label="Show Slide Numbers" desc="Display slide numbers during presentation" defaultOn={true} />
               </div>
             </SettingsCard>
-            <div style={{ height: 16 }} />
+
             <SettingsCard title="Audience Interaction">
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <ToggleSetting label="Allow Anonymous Responses" desc="Let audience respond without signing in" defaultOn={true} />
@@ -516,14 +536,14 @@ function Dashboard({ user, onLogout }) {
                 <ToggleSetting label="Sound Effects" desc="Play sound when new responses are received" defaultOn={false} />
               </div>
             </SettingsCard>
-            <div style={{ height: 16 }} />
+
             <SettingsCard title="Notifications">
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <ToggleSetting label="Email Notifications" desc="Receive emails about session activity" defaultOn={true} />
                 <ToggleSetting label="Session Summary" desc="Get a summary report after each session ends" defaultOn={false} />
               </div>
             </SettingsCard>
-            <div style={{ height: 16 }} />
+
             <SettingsCard title="Danger Zone" danger={true}>
               <p style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>Permanently delete your account and all presentations. This action cannot be undone.</p>
               <button style={{ padding: "10px 20px", background: "#F43F5E15", border: "1px solid #F43F5E30", borderRadius: 10, color: "#F43F5E", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>Delete Account</button>

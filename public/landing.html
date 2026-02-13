@@ -688,7 +688,7 @@
     function renderPricing() {
       const plans = [
         { name:'Free', price:0, desc:'For individuals getting started', features:['5 presentations','Unlimited audience','Basic templates','Live polls & quizzes','Community support','SlidePlus branding'], cta:'Get Started', popular:false },
-        { name:'Pro', price: isAnnual?9:12, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Start Pro Trial', popular:true },
+        { name:'Pro', price: isAnnual?6:9, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Start Pro Trial', popular:true },
         { name:'Enterprise', price:null, desc:'For large organizations', features:['Everything in Pro','Unlimited participants','SSO & SAML','Admin panel','Regional data hosting','Dedicated support','Custom integrations','SLA guarantee'], cta:'Contact Sales', popular:false },
       ];
       document.getElementById('pricingGrid').innerHTML = plans.map((p, i) => `
@@ -723,7 +723,7 @@
         <div class="faq-a"><p>${a}</p></div>
       </div>
     `).join('');
-    //    document.querySelectorAll('.faq-item').forEach(el => observer.observe(el));
+    document.querySelectorAll('.faq-item').forEach(el => observer.observe(el));
 
     function toggleFaq(btn) {
       const item = btn.parentElement;

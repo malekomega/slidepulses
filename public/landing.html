@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SlidePulse — Interactive Presentations for the Middle East</title>
+  <title>SlidePlus — Interactive Presentations for the Middle East</title>
   <meta name="description" content="Build interactive presentations with live polls, quizzes, and word clouds. Engage your audience in real-time — at a fraction of the cost. Built for the Middle East.">
   <meta name="keywords" content="interactive presentations, live polls, quizzes, word clouds, Arabic presentations, MENA, Mentimeter alternative">
-  <meta name="author" content="SlidePulse">
+  <meta name="author" content="SlidePlus">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="SlidePulse — Interactive Presentations">
+  <meta property="og:title" content="SlidePlus — Interactive Presentations">
   <meta property="og:description" content="Build interactive presentations with live polls, quizzes, and word clouds. Engage your audience in real-time.">
-  <meta property="og:url" content="https://slidepulse.io">
-  <meta property="og:image" content="https://slidepulse.io/og-image.png">
+  <meta property="og:url" content="https://SlidePlus.io">
+  <meta property="og:image" content="https://SlidePlus.io/og-image.png">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SlidePulse — Interactive Presentations">
+  <meta name="twitter:title" content="SlidePlus — Interactive Presentations">
   <meta name="twitter:description" content="Build interactive presentations with live polls, quizzes, and word clouds.">
 
   <!-- Favicon placeholder -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%236366F1'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='800' font-family='sans-serif'>S</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%236366F1'/><path d='m27.1,0v2.27c0,2.03-1.64,3.67-3.67,3.67H5.94c0,2.03,1.64,3.67,3.67,3.67h15.55l-1.89,7.31c-1.06.41-1.89,1.31-2.19,2.46l-.33,1.28h-1.64c-1.98,0-3.6,1.61-3.6,3.6,0,.31.04.61.11.9H4.02v-2.27c0-2.03,1.64-3.67,3.67-3.67h9.48c0-1.01-.41-1.93-1.07-2.59-.66-.66-1.58-1.07-2.59-1.07H0V3.67C0,1.64,1.64,0,3.67,0h23.43Zm.85,22.43h-2.08l.44-1.7c.04-.15.06-.31.06-.46,0-.81-.54-1.55-1.37-1.76-.15-.04-.31-.06-.46-.06-.81,0-1.55.55-1.76,1.37l-.67,2.61h-3.02c-1.01,0-1.82.81-1.82,1.82,0,.33.09.63.24.9.31.55.9.92,1.58.92h2.08l-.44,1.7c-.04.15-.06.31-.06.46,0,.81.55,1.55,1.37,1.76.15.04.31.06.46.06.81,0,1.55-.55,1.76-1.37l.67-2.61h3.02c1.01,0,1.82-.81,1.82-1.82,0-1.01-.81-1.82-1.82-1.82Z' fill='white' transform='scale(0.111)'/></svg>">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,7 +83,7 @@
     .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #060810dd; backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff06; }
     .navbar-inner { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; height: 66px; display: flex; align-items: center; justify-content: space-between; }
     .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .logo-mark { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-display); }
+    .logo-mark { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; padding: 5px; }
     .logo-text { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
     .nav-links { display: flex; align-items: center; gap: 28px; }
     .nav-link { background: none; border: none; color: var(--text-muted); font-size: 14px; font-weight: 500; cursor: pointer; position: relative; padding: 0; transition: color 0.2s; }
@@ -221,7 +221,7 @@
     .about-stat .label { font-size: 13px; color: var(--text-dim); }
     .about-visual { position: relative; display: flex; justify-content: center; align-items: center; height: 280px; }
     .about-ring { position: absolute; border-radius: 50%; border: 1px solid; }
-    .about-core { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #fff; font-family: var(--font-display); z-index: 1; }
+    .about-core { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; padding: 10px; z-index: 1; }
     .orbit-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; top: 50%; left: 50%; }
 
     /* ─── CONTACT ─── */
@@ -288,8 +288,8 @@
   <nav class="navbar">
     <div class="navbar-inner">
       <a href="#home" class="logo">
-        <div class="logo-mark">S</div>
-        <span class="logo-text">SlidePulse</span>
+        <div class="logo-mark"><svg width="20" height="20" viewBox="0 0 268.05 270.45" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m244.05,0v20.41c0,18.24-14.78,33.03-33.02,33.03H53.44c0,18.23,14.79,33.02,33.03,33.02h139.95l-17,65.8c-9.54,3.67-17.05,11.77-19.73,22.13l-2.97,11.5h-14.77c-17.86,0-32.39,14.53-32.39,32.38,0,2.79.35,5.5,1.02,8.09H36.15v-20.41c0-18.24,14.79-33.03,33.02-33.03h85.3c0-9.12-3.69-17.38-9.67-23.35-5.98-5.97-14.23-9.67-23.35-9.67H0V33.02C0,14.78,14.79,0,33.03,0h211.02Zm7.62,201.89h-18.7l3.95-15.29c.35-1.38.52-2.75.52-4.11,0-7.3-4.9-13.95-12.29-15.86-1.37-.36-2.75-.53-4.11-.53-7.29,0-13.95,4.91-15.86,12.3l-6.07,23.49h-27.16c-9.05,0-16.39,7.33-16.39,16.38h0c0,2.95.78,5.71,2.14,8.09,2.81,4.96,8.14,8.3,14.25,8.3h18.7l-3.95,15.29c-.36,1.38-.53,2.76-.53,4.12,0,7.3,4.91,13.95,12.29,15.85,1.38.36,2.76.53,4.12.53,7.29,0,13.94-4.91,15.85-12.3l6.07-23.49h27.17c9.05,0,16.38-7.33,16.38-16.38h0c0-9.06-7.33-16.39-16.38-16.39Z" fill="white"/></svg></div>
+        <span class="logo-text">SlidePlus</span>
       </a>
       <div class="nav-links">
         <button class="nav-link" onclick="smoothScroll('features')">Features</button>
@@ -444,7 +444,7 @@
           <div class="demo-dot" style="background:#F43F5E"></div>
           <div class="demo-dot" style="background:#EAB308"></div>
           <div class="demo-dot" style="background:#22C55E"></div>
-          <span style="font-size:12px;color:var(--text-dim);margin-left:8px">SlidePulse — Live Demo</span>
+          <span style="font-size:12px;color:var(--text-dim);margin-left:8px">SlidePlus — Live Demo</span>
         </div>
         <div class="demo-body">
           <h3 class="demo-title">Which feature excites you most?</h3>
@@ -482,7 +482,7 @@
       <div class="testimonials-grid">
         <div class="testimonial-card reveal">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="#6366F120"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-          <p class="testimonial-text">"SlidePulse transformed how we run workshops. The live polling in Arabic is a game-changer for our regional stakeholder meetings."</p>
+          <p class="testimonial-text">"SlidePlus transformed how we run workshops. The live polling in Arabic is a game-changer for our regional stakeholder meetings."</p>
           <div class="testimonial-stars">★★★★★</div>
           <div class="testimonial-name">Ahmed Al-Rashid</div>
           <div class="testimonial-role">Program Manager, UNDP Jordan</div>
@@ -496,7 +496,7 @@
         </div>
         <div class="testimonial-card reveal" style="transition-delay:.16s">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="#6366F120"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-          <p class="testimonial-text">"We switched from Mentimeter to SlidePulse and saved 60% on our annual license while getting better Arabic support and local data hosting."</p>
+          <p class="testimonial-text">"We switched from Mentimeter to SlidePlus and saved 60% on our annual license while getting better Arabic support and local data hosting."</p>
           <div class="testimonial-stars">★★★★★</div>
           <div class="testimonial-name">Omar Haddad</div>
           <div class="testimonial-role">Training Director, GIZ Iraq</div>
@@ -523,7 +523,7 @@
         <div>
           <span class="section-label">About us</span>
           <h2 style="font-size:36px;font-weight:800;margin-bottom:20px">Built for the Middle East, made for the world</h2>
-          <p style="font-size:16px;color:var(--text-muted);line-height:1.75;margin-bottom:16px">SlidePulse was born from a simple frustration: existing presentation tools didn't serve Arabic-speaking audiences well and were too expensive for NGOs and educational institutions in the region.</p>
+          <p style="font-size:16px;color:var(--text-muted);line-height:1.75;margin-bottom:16px">SlidePlus was born from a simple frustration: existing presentation tools didn't serve Arabic-speaking audiences well and were too expensive for NGOs and educational institutions in the region.</p>
           <p style="font-size:16px;color:var(--text-muted);line-height:1.75">We set out to build the most accessible, affordable, and powerful interactive presentation tool — with native Arabic support, regional data hosting, and pricing that makes sense.</p>
           <div class="about-stats">
             <div class="about-stat"><div class="val">1K+</div><div class="label">Active Users</div></div>
@@ -536,7 +536,7 @@
           <div class="about-ring" style="inset:20px;border-color:#6366F118"></div>
           <div class="about-ring" style="inset:50px;border-color:#8B5CF615"></div>
           <div class="about-ring" style="inset:80px;border-color:#6366F110"></div>
-          <div class="about-core">S</div>
+          <div class="about-core"><svg width="34" height="34" viewBox="0 0 268.05 270.45" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m244.05,0v20.41c0,18.24-14.78,33.03-33.02,33.03H53.44c0,18.23,14.79,33.02,33.03,33.02h139.95l-17,65.8c-9.54,3.67-17.05,11.77-19.73,22.13l-2.97,11.5h-14.77c-17.86,0-32.39,14.53-32.39,32.38,0,2.79.35,5.5,1.02,8.09H36.15v-20.41c0-18.24,14.79-33.03,33.02-33.03h85.3c0-9.12-3.69-17.38-9.67-23.35-5.98-5.97-14.23-9.67-23.35-9.67H0V33.02C0,14.78,14.79,0,33.03,0h211.02Zm7.62,201.89h-18.7l3.95-15.29c.35-1.38.52-2.75.52-4.11,0-7.3-4.9-13.95-12.29-15.86-1.37-.36-2.75-.53-4.11-.53-7.29,0-13.95,4.91-15.86,12.3l-6.07,23.49h-27.16c-9.05,0-16.39,7.33-16.39,16.38h0c0,2.95.78,5.71,2.14,8.09,2.81,4.96,8.14,8.3,14.25,8.3h18.7l-3.95,15.29c-.36,1.38-.53,2.76-.53,4.12,0,7.3,4.91,13.95,12.29,15.85,1.38.36,2.76.53,4.12.53,7.29,0,13.94-4.91,15.85-12.3l6.07-23.49h27.17c9.05,0,16.38-7.33,16.38-16.38h0c0-9.06-7.33-16.39-16.38-16.39Z" fill="white"/></svg></div>
           <div class="orbit-dot" style="background:#6366F1;animation:orbit 8s linear infinite"></div>
           <div class="orbit-dot" style="background:#8B5CF6;animation:orbit 10s linear 1.5s infinite"></div>
           <div class="orbit-dot" style="background:#EC4899;animation:orbit 12s linear 3s infinite"></div>
@@ -560,7 +560,7 @@
             <div class="contact-icon" style="background:#6366F112;color:#6366F1">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
             </div>
-            <div><div style="font-size:12px;color:var(--text-dim)">Email</div><div style="font-size:15px;font-weight:500">hello@slidepulse.io</div></div>
+            <div><div style="font-size:12px;color:var(--text-dim)">Email</div><div style="font-size:15px;font-weight:500"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ef6fbf2f2f1decdf2f7fafbcef2ebedb0f7f1">[email&#160;protected]</a></div></div>
           </div>
           <div class="contact-card">
             <div class="contact-icon" style="background:#8B5CF612;color:#8B5CF6">
@@ -620,7 +620,7 @@
     <div class="footer-inner">
       <div class="footer-grid">
         <div class="footer-brand">
-          <div class="logo"><div class="logo-mark">S</div><span class="logo-text">SlidePulse</span></div>
+          <div class="logo"><div class="logo-mark"><svg width="20" height="20" viewBox="0 0 268.05 270.45" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m244.05,0v20.41c0,18.24-14.78,33.03-33.02,33.03H53.44c0,18.23,14.79,33.02,33.03,33.02h139.95l-17,65.8c-9.54,3.67-17.05,11.77-19.73,22.13l-2.97,11.5h-14.77c-17.86,0-32.39,14.53-32.39,32.38,0,2.79.35,5.5,1.02,8.09H36.15v-20.41c0-18.24,14.79-33.03,33.02-33.03h85.3c0-9.12-3.69-17.38-9.67-23.35-5.98-5.97-14.23-9.67-23.35-9.67H0V33.02C0,14.78,14.79,0,33.03,0h211.02Zm7.62,201.89h-18.7l3.95-15.29c.35-1.38.52-2.75.52-4.11,0-7.3-4.9-13.95-12.29-15.86-1.37-.36-2.75-.53-4.11-.53-7.29,0-13.95,4.91-15.86,12.3l-6.07,23.49h-27.16c-9.05,0-16.39,7.33-16.39,16.38h0c0,2.95.78,5.71,2.14,8.09,2.81,4.96,8.14,8.3,14.25,8.3h18.7l-3.95,15.29c-.36,1.38-.53,2.76-.53,4.12,0,7.3,4.91,13.95,12.29,15.85,1.38.36,2.76.53,4.12.53,7.29,0,13.94-4.91,15.85-12.3l6.07-23.49h27.17c9.05,0,16.38-7.33,16.38-16.38h0c0-9.06-7.33-16.39-16.38-16.39Z" fill="white"/></svg></div><span class="logo-text">SlidePlus</span></div>
           <p>Interactive presentation tool built for the Middle East. Engage your audience with live polls, quizzes, and more.</p>
         </div>
         <div class="footer-col"><h4>Product</h4><a href="#">Features</a><a href="#">Pricing</a><a href="#">Templates</a><a href="#">Integrations</a><a href="#">Changelog</a></div>
@@ -628,14 +628,14 @@
         <div class="footer-col"><h4>Support</h4><a href="#">Help Center</a><a href="#">Documentation</a><a href="#">API</a><a href="#">Status</a><a href="#">Community</a></div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 SlidePulse. All rights reserved.</span>
+        <span>© 2026 SlidePlus. All rights reserved.</span>
         <div class="footer-legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a></div>
       </div>
     </div>
   </footer>
 
   <!-- ═══ JAVASCRIPT ═══ -->
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // ─── SMOOTH SCROLL ───
     function smoothScroll(id) { document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' }); }
 
@@ -687,7 +687,7 @@
     }
     function renderPricing() {
       const plans = [
-        { name:'Free', price:0, desc:'For individuals getting started', features:['5 presentations','Unlimited audience','Basic templates','Live polls & quizzes','Community support','SlidePulse branding'], cta:'Get Started', popular:false },
+        { name:'Free', price:0, desc:'For individuals getting started', features:['5 presentations','Unlimited audience','Basic templates','Live polls & quizzes','Community support','SlidePlus branding'], cta:'Get Started', popular:false },
         { name:'Pro', price: isAnnual?9:12, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Start Pro Trial', popular:true },
         { name:'Enterprise', price:null, desc:'For large organizations', features:['Everything in Pro','Unlimited participants','SSO & SAML','Admin panel','Regional data hosting','Dedicated support','Custom integrations','SLA guarantee'], cta:'Contact Sales', popular:false },
       ];
@@ -706,12 +706,12 @@
 
     // ─── FAQ ───
     const faqs = [
-      ['Is SlidePulse really free to start?','Yes! Our Free plan includes up to 5 presentations with unlimited audience participants. No credit card required.'],
-      ['Does it support Arabic and RTL?','Absolutely. SlidePulse has full Arabic language support with complete RTL (right-to-left) layout. Both the editor and presentation mode work seamlessly in Arabic.'],
+      ['Is SlidePlus really free to start?','Yes! Our Free plan includes up to 5 presentations with unlimited audience participants. No credit card required.'],
+      ['Does it support Arabic and RTL?','Absolutely. SlidePlus has full Arabic language support with complete RTL (right-to-left) layout. Both the editor and presentation mode work seamlessly in Arabic.'],
       ['How does the audience participate?','Audience members scan a QR code or visit a short link on their phone or laptop. No app download required — it works in any browser.'],
       ['Can I import existing presentations?','Yes, you can import PPTX files from PowerPoint or Google Slides. We\'ll convert them and you can add interactive elements on top.'],
       ['Where is the data hosted?','We offer regional hosting in the Middle East to comply with local data sovereignty requirements. Enterprise customers can choose their preferred hosting region.'],
-      ['How is SlidePulse different from Mentimeter?','SlidePulse offers native Arabic/RTL support, regional data hosting, significantly lower pricing for the MENA market, and a more powerful drag-and-drop editor with live collaboration.'],
+      ['How is SlidePlus different from Mentimeter?','SlidePlus offers native Arabic/RTL support, regional data hosting, significantly lower pricing for the MENA market, and a more powerful drag-and-drop editor with live collaboration.'],
       ['Can I use it for large events?','Our Pro plan supports up to 500 participants, and Enterprise can handle thousands. Real-time interactions work smoothly at any scale.'],
     ];
     document.getElementById('faqList').innerHTML = faqs.map(([q, a], i) => `
@@ -728,9 +728,4 @@
 
     function toggleFaq(btn) {
       const isOpen = btn.classList.contains('open');
-      document.querySelectorAll('.faq-q').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
-      if (!isOpen) { btn.classList.add('open'); btn.nextElementSibling.classList.add('open'); }
-    }
-  </script>
-</body>
-</html>
+      document.querySelectorAll('.faq-q').f

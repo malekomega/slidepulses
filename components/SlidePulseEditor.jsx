@@ -349,7 +349,7 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
         return;
       }
       if (editingTextId) return;
-     if (e.key === "Delete") {
+      if (e.key === "Delete" || e.key === "Backspace") {
         if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
       }
       if (e.ctrlKey || e.metaKey) {
@@ -495,7 +495,7 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
       {/* ─── TOP BAR ─── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 10px", height: 52, background: "#0D0F14", borderBottom: "1px solid #151825", flexShrink: 0, gap: 6 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
-          <a href="/dashboard" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: isMobile ? 14 : 16, color: "#E2E8F0", textDecoration: "none", cursor: "pointer", whiteSpace: "nowrap" }}>← S</a>
+          <a href="/dashboard" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: isMobile ? 14 : 16, color: "#E2E8F0", textDecoration: "none", cursor: "pointer", whiteSpace: "nowrap" }}>{"← SlidePlus"}</a>
           <input value={presentationTitle} onChange={(e) => setPresentationTitle(e.target.value)} style={{ padding: "5px 8px", background: "#0D0F14", border: "1px solid #1a1d2e", borderRadius: 6, color: "#E2E8F0", fontSize: 13, fontFamily: "'DM Sans'", outline: "none", width: isMobile ? 100 : 200, minWidth: 60 }} />
           <button onClick={handleSave} disabled={saving} style={{ padding: "6px 12px", background: saving ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 600, cursor: saving ? "wait" : "pointer", fontFamily: "'DM Sans'", whiteSpace: "nowrap" }}>{saving ? "..." : "Save"}</button>
           {!isMobile && lastSaved && <span style={{ fontSize: 11, color: "#4a5070" }}>Saved {lastSaved.toLocaleTimeString()}</span>}

@@ -236,8 +236,8 @@ function LoginPage({ onSwitch, onLogin }) {
 
         <div style={{ background: "#0A0C12", border: "1px solid #131520", borderRadius: 16, padding: "32px 28px", backdropFilter: "blur(20px)" }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <SocialBtn icon={<I.Google />} label="Google" />
-            <SocialBtn icon={<I.Microsoft />} label="Microsoft" />
+            <SocialBtn icon={<I.Google />} label="Google" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/dashboard" } }); if (error) alert("Google login failed: " + error.message); }} />
+            <SocialBtn icon={<I.Microsoft />} label="Microsoft" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { redirectTo: window.location.origin + "/dashboard", scopes: "email profile openid" } }); if (error) alert("Microsoft login failed: " + error.message); }} />
           </div>
           <Divider />
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 16 }}>
@@ -313,8 +313,8 @@ function SignupPage({ onSwitch, onLogin }) {
 
         <div style={{ background: "#0A0C12", border: "1px solid #131520", borderRadius: 16, padding: "32px 28px" }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <SocialBtn icon={<I.Google />} label="Google" />
-            <SocialBtn icon={<I.Microsoft />} label="Microsoft" />
+            <SocialBtn icon={<I.Google />} label="Google" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/dashboard" } }); if (error) alert("Google login failed: " + error.message); }} />
+            <SocialBtn icon={<I.Microsoft />} label="Microsoft" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { redirectTo: window.location.origin + "/dashboard", scopes: "email profile openid" } }); if (error) alert("Microsoft login failed: " + error.message); }} />
           </div>
           <Divider />
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>

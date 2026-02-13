@@ -18,6 +18,8 @@ const Icons = {
   Poll: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>,
   Quiz: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>,
   Cloud: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>,
+  PieChart: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>,
+  BarChart: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>,
   Settings: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
   ChevLeft: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>,
   ChevRight: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>,
@@ -249,6 +251,7 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
       shape: { x: 200, y: 150, w: 120, h: 120, shapeType: "rect", fill: "#6366F1", stroke: "none", opacity: 1 },
       image: { x: 150, y: 100, w: 250, h: 180, src: "", placeholder: true },
       interactive: { x: 80, y: 110, w: 640, h: 270, interactiveType: "poll", question: "Your question?", options: ["Option A", "Option B", "Option C"], votes: [0, 0, 0] },
+      chart: { x: 100, y: 80, w: 350, h: 280, chartType: "pie", chartData: [{ label: "A", value: 40, color: "#6366F1" }, { label: "B", value: 30, color: "#8B5CF6" }, { label: "C", value: 20, color: "#EC4899" }, { label: "D", value: 10, color: "#06B6D4" }] },
     };
     const el = { id: uid(), type, ...defaults[type], ...extra };
     const ns = slides.map((s, i) => i === activeSlideIndex ? { ...s, elements: [...s.elements, el] } : s);
@@ -459,6 +462,38 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
       );
     }
 
+    if (el.type === "chart") {
+      const data = el.chartData || [];
+      const total = data.reduce((a, b) => a + b.value, 0) || 1;
+      return (
+        <div key={el.id} style={wrapStyle} onMouseDown={(e) => !isPresentation && handleElementMouseDown(e, el.id)}>
+          <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", padding: 12 }}>
+            {el.chartType === "pie" ? (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
+                <svg viewBox="0 0 100 100" style={{ width: "60%", maxHeight: "90%" }}>
+                  {(() => { let acc = 0; return data.map((d, i) => { const pct = d.value / total; const startAngle = acc * 2 * Math.PI; acc += pct; const endAngle = acc * 2 * Math.PI; const largeArc = pct > 0.5 ? 1 : 0; const x1 = 50 + 45 * Math.cos(startAngle - Math.PI / 2); const y1 = 50 + 45 * Math.sin(startAngle - Math.PI / 2); const x2 = 50 + 45 * Math.cos(endAngle - Math.PI / 2); const y2 = 50 + 45 * Math.sin(endAngle - Math.PI / 2); if (data.length === 1) return <circle key={i} cx="50" cy="50" r="45" fill={d.color} />; return <path key={i} d={`M50,50 L${x1},${y1} A45,45 0 ${largeArc},1 ${x2},${y2} Z`} fill={d.color} />; }); })()}
+                </svg>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {data.map((d, i) => <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "#E2E8F0" }}><div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />{d.label} ({Math.round(d.value / total * 100)}%)</div>)}
+                </div>
+              </div>
+            ) : (
+              <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 8, padding: "8px 4px 0" }}>
+                {data.map((d, i) => { const maxVal = Math.max(...data.map(x => x.value), 1); const h = (d.value / maxVal) * 100; return (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <span style={{ fontSize: 10, color: "#94A3B8", fontWeight: 600 }}>{d.value}</span>
+                    <div style={{ width: "70%", height: `${h}%`, background: d.color, borderRadius: "4px 4px 0 0", minHeight: 4 }} />
+                    <span style={{ fontSize: 9, color: "#64748B", textAlign: "center" }}>{d.label}</span>
+                  </div>
+                ); })}
+              </div>
+            )}
+          </div>
+          {resizeHandles}
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -567,14 +602,17 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
         <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#090B10", overflow: "hidden", position: "relative" }}>
           {/* Toolbar */}
           <div style={{ display: "flex", alignItems: "center", padding: "8px 12px", gap: 2, borderBottom: "1px solid #12141d", flexShrink: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            <ToolBtn icon={<Icons.Text />} label="Text" onClick={() => addElement("text")} />
-            <ToolBtn icon={<Icons.Square />} label="Rectangle" onClick={() => addElement("shape", { shapeType: "rect" })} />
-            <ToolBtn icon={<Icons.Circle />} label="Circle" onClick={() => addElement("shape", { shapeType: "circle", w: 120, h: 120 })} />
-            <ToolBtn icon={<Icons.Image />} label="Image" onClick={() => addElement("image")} />
+            <ToolBtn icon={<Icons.Text />} label="Text" showLabel onClick={() => addElement("text")} />
+            <ToolBtn icon={<Icons.Square />} label="Rectangle" showLabel onClick={() => addElement("shape", { shapeType: "rect" })} />
+            <ToolBtn icon={<Icons.Circle />} label="Circle" showLabel onClick={() => addElement("shape", { shapeType: "circle", w: 120, h: 120 })} />
+            <ToolBtn icon={<Icons.Image />} label="Image" showLabel onClick={() => addElement("image")} />
             <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />
-            <ToolBtn icon={<Icons.Poll />} label="Poll" onClick={() => addElement("interactive", { interactiveType: "poll", question: "Your question?", options: ["Option A", "Option B", "Option C"], votes: [0, 0, 0] })} />
-            <ToolBtn icon={<Icons.Quiz />} label="Quiz" onClick={() => addElement("interactive", { interactiveType: "quiz", question: "Your question?", options: ["Answer A", "Answer B", "Answer C", "Answer D"], correctIndex: 0, revealed: false })} />
-            <ToolBtn icon={<Icons.Cloud />} label="Word Cloud" onClick={() => addElement("interactive", { interactiveType: "wordCloud", words: ["Word 1", "Word 2", "Word 3", "Word 4", "Word 5"] })} />
+            <ToolBtn icon={<Icons.Poll />} label="Poll" showLabel onClick={() => addElement("interactive", { interactiveType: "poll", question: "Your question?", options: ["Option A", "Option B", "Option C"], votes: [0, 0, 0] })} />
+            <ToolBtn icon={<Icons.Quiz />} label="Quiz" showLabel onClick={() => addElement("interactive", { interactiveType: "quiz", question: "Your question?", options: ["Answer A", "Answer B", "Answer C", "Answer D"], correctIndex: 0, revealed: false })} />
+            <ToolBtn icon={<Icons.Cloud />} label="Word Cloud" showLabel onClick={() => addElement("interactive", { interactiveType: "wordCloud", words: ["Word 1", "Word 2", "Word 3", "Word 4", "Word 5"] })} />
+            <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />
+            <ToolBtn icon={<Icons.PieChart />} label="Pie Chart" showLabel onClick={() => addElement("chart", { chartType: "pie", chartData: [{ label: "Category A", value: 40, color: "#6366F1" }, { label: "Category B", value: 30, color: "#8B5CF6" }, { label: "Category C", value: 20, color: "#EC4899" }, { label: "Category D", value: 10, color: "#06B6D4" }] })} />
+            <ToolBtn icon={<Icons.BarChart />} label="Column Chart" showLabel onClick={() => addElement("chart", { chartType: "bar", chartData: [{ label: "Jan", value: 65, color: "#6366F1" }, { label: "Feb", value: 45, color: "#8B5CF6" }, { label: "Mar", value: 80, color: "#EC4899" }, { label: "Apr", value: 55, color: "#06B6D4" }] })} />
             <div style={{ flex: 1 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} style={{ ...zoomBtn }}>−</button>
@@ -898,6 +936,28 @@ function ElementProperties({ el, onUpdate, onDelete }) {
           <PropInput label="Words (comma separated)" value={el.words.join(", ")} onChange={v => onUpdate({ words: v.split(",").map(w => w.trim()).filter(Boolean) })} textarea />
         </PropSection>
       )}
+
+      {el.type === "chart" && (
+        <>
+          <PropSection title="Chart Type">
+            <select value={el.chartType} onChange={e => onUpdate({ chartType: e.target.value })} style={{ width: "100%", padding: "8px 10px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#E2E8F0", fontSize: 13, fontFamily: "'DM Sans'", outline: "none" }}>
+              <option value="pie">Pie Chart</option>
+              <option value="bar">Column Chart</option>
+            </select>
+          </PropSection>
+          <PropSection title="Data">
+            {(el.chartData || []).map((d, i) => (
+              <div key={i} style={{ display: "flex", gap: 4, marginBottom: 6, alignItems: "center" }}>
+                <input type="color" value={d.color} onChange={e => { const nd = [...el.chartData]; nd[i] = { ...nd[i], color: e.target.value }; onUpdate({ chartData: nd }); }} style={{ width: 28, height: 28, border: "none", background: "none", cursor: "pointer", padding: 0 }} />
+                <input value={d.label} onChange={e => { const nd = [...el.chartData]; nd[i] = { ...nd[i], label: e.target.value }; onUpdate({ chartData: nd }); }} placeholder="Label" style={{ flex: 1, padding: "6px 8px", background: "#151825", border: "1px solid #1e2235", borderRadius: 6, color: "#E2E8F0", fontSize: 12, outline: "none" }} />
+                <input type="number" value={d.value} onChange={e => { const nd = [...el.chartData]; nd[i] = { ...nd[i], value: Number(e.target.value) }; onUpdate({ chartData: nd }); }} style={{ width: 50, padding: "6px 8px", background: "#151825", border: "1px solid #1e2235", borderRadius: 6, color: "#E2E8F0", fontSize: 12, outline: "none", textAlign: "center" }} />
+                <button onClick={() => { const nd = el.chartData.filter((_, j) => j !== i); onUpdate({ chartData: nd }); }} style={{ background: "none", border: "none", color: "#F43F5E", cursor: "pointer", fontSize: 14, padding: 2 }}>×</button>
+              </div>
+            ))}
+            <button onClick={() => { const colors = ["#6366F1", "#8B5CF6", "#EC4899", "#06B6D4", "#22C55E", "#F97316", "#EAB308", "#F43F5E"]; const nd = [...(el.chartData || []), { label: "New", value: 25, color: colors[(el.chartData || []).length % colors.length] }]; onUpdate({ chartData: nd }); }} style={{ width: "100%", padding: "6px", background: "#6366F115", border: "1px solid #6366F130", borderRadius: 6, color: "#6366F1", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>+ Add Data</button>
+          </PropSection>
+        </>
+      )}
     </div>
   );
 }
@@ -938,13 +998,13 @@ function ColorPicker({ value, onChange }) {
   );
 }
 
-function ToolBtn({ icon, label, onClick, active }) {
+function ToolBtn({ icon, label, onClick, active, showLabel }) {
   return (
     <button onClick={onClick} title={label}
-      style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, background: active ? "#6366F118" : "transparent", border: "none", borderRadius: 6, color: active ? "#6366F1" : "#64748B", cursor: "pointer", transition: "all 0.15s" }}
-      onMouseEnter={e => { if (!active) e.target.style.background = "#151825"; e.target.style.color = "#E2E8F0"; }}
-      onMouseLeave={e => { if (!active) e.target.style.background = "transparent"; e.target.style.color = active ? "#6366F1" : "#64748B"; }}>
-      {icon}
+      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, height: 34, padding: showLabel ? "0 10px" : "0", width: showLabel ? "auto" : 34, background: active ? "#6366F118" : "transparent", border: "none", borderRadius: 6, color: active ? "#6366F1" : "#64748B", cursor: "pointer", transition: "all 0.15s", flexShrink: 0 }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "#151825"; e.currentTarget.style.color = "#E2E8F0"; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = active ? "#6366F1" : "#64748B"; }}>
+      {icon}{showLabel && label ? <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>{label}</span> : null}
     </button>
   );
 }

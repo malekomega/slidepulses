@@ -478,14 +478,14 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
                 </div>
               </div>
             ) : (
-              <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 8, padding: "8px 4px 0" }}>
-                {data.map((d, i) => { const maxVal = Math.max(...data.map(x => x.value), 1); const h = (d.value / maxVal) * 100; return (
-                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <span style={{ fontSize: 10, color: "#94A3B8", fontWeight: 600 }}>{d.value}</span>
-                    <div style={{ width: "70%", height: `${h}%`, background: d.color, borderRadius: "4px 4px 0 0", minHeight: 4 }} />
-                    <span style={{ fontSize: 9, color: "#64748B", textAlign: "center" }}>{d.label}</span>
+              <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 8, padding: "8px 4px 0", position: "relative" }}>
+                {(() => { const maxVal = Math.max(...data.map(x => x.value), 1); return data.map((d, i) => { const hPct = (d.value / maxVal) * 100; return (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                    <span style={{ fontSize: 10, color: "#94A3B8", fontWeight: 600, marginBottom: 4 }}>{d.value}</span>
+                    <div style={{ width: "70%", flexBasis: `${hPct}%`, flexShrink: 0, flexGrow: 0, background: d.color, borderRadius: "4px 4px 0 0", minHeight: 4 }} />
+                    <span style={{ fontSize: 9, color: "#64748B", textAlign: "center", marginTop: 4, flexShrink: 0 }}>{d.label}</span>
                   </div>
-                ); })}
+                ); }); })()}
               </div>
             )}
           </div>

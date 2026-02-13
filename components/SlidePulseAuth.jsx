@@ -86,8 +86,12 @@ function AuthBackground() {
 function Logo({ size = 32 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div style={{ width: size, height: size, borderRadius: size * 0.22, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.5, fontWeight: 800, color: "#fff", fontFamily: "'Outfit', sans-serif" }}>S</div>
-      <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: size * 0.56, letterSpacing: "-0.02em", color: "#E2E8F0" }}>SlidePulse</span>
+      <div style={{ width: size, height: size, borderRadius: size * 0.22, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", padding: size * 0.15 }}>
+        <svg width={size * 0.65} height={size * 0.65} viewBox="0 0 268.05 270.45" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="m244.05,0v20.41c0,18.24-14.78,33.03-33.02,33.03H53.44c0,18.23,14.79,33.02,33.03,33.02h139.95l-17,65.8c-9.54,3.67-17.05,11.77-19.73,22.13l-2.97,11.5h-14.77c-17.86,0-32.39,14.53-32.39,32.38,0,2.79.35,5.5,1.02,8.09H36.15v-20.41c0-18.24,14.79-33.03,33.02-33.03h85.3c0-9.12-3.69-17.38-9.67-23.35-5.98-5.97-14.23-9.67-23.35-9.67H0V33.02C0,14.78,14.79,0,33.03,0h211.02Zm7.62,201.89h-18.7l3.95-15.29c.35-1.38.52-2.75.52-4.11,0-7.3-4.9-13.95-12.29-15.86-1.37-.36-2.75-.53-4.11-.53-7.29,0-13.95,4.91-15.86,12.3l-6.07,23.49h-27.16c-9.05,0-16.39,7.33-16.39,16.38h0c0,2.95.78,5.71,2.14,8.09,2.81,4.96,8.14,8.3,14.25,8.3h18.7l-3.95,15.29c-.36,1.38-.53,2.76-.53,4.12,0,7.3,4.91,13.95,12.29,15.85,1.38.36,2.76.53,4.12.53,7.29,0,13.94-4.91,15.85-12.3l6.07-23.49h27.17c9.05,0,16.38-7.33,16.38-16.38h0c0-9.06-7.33-16.39-16.38-16.39Z" fill="#fff"/>
+        </svg>
+      </div>
+      <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: size * 0.56, letterSpacing: "-0.02em", color: "#E2E8F0" }}>SlidePlus</span>
     </div>
   );
 }
@@ -227,7 +231,7 @@ function LoginPage({ onSwitch, onLogin }) {
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}><Logo size={36} /></div>
           <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 700, color: "#E2E8F0", margin: "0 0 8px" }}>Welcome back</h1>
-          <p style={{ color: "#4a5070", fontSize: 15, margin: 0 }}>Sign in to continue to SlidePulse</p>
+          <p style={{ color: "#4a5070", fontSize: 15, margin: 0 }}>Sign in to continue to SlidePlus</p>
         </div>
 
         <div style={{ background: "#0A0C12", border: "1px solid #131520", borderRadius: 16, padding: "32px 28px", backdropFilter: "blur(20px)" }}>

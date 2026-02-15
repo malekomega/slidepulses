@@ -84,19 +84,55 @@ function InteractiveResults({ interactive, slideResponses }) {
   slideResponses.forEach((r) => { votes[r.answer] = (votes[r.answer] || 0) + 1; });
 
   if (interactive.interactiveType === "wordCloud") {
+    const entries = Object.entries(votes);
+    const maxCount = Math.max(...entries.map(([,c]) => c), 1);
+    const cloudColors = ["#818CF8", "#A78BFA", "#F472B6", "#34D399", "#60A5FA", "#FBBF24", "#F87171", "#2DD4BF", "#C084FC", "#FB923C"];
+    
     return (
-      <div style={{ background: card, border: "1px solid " + border, borderRadius: 14, padding: "20px 24px", marginTop: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span style={{ padding: "3px 10px", background: primary + "15", borderRadius: 8, fontSize: 11, fontWeight: 600, color: primary }}>☁️ Word Cloud</span>
+      <div style={{ background: card, border: "1px solid " + border, borderRadius: 16, padding: "24px 28px", marginTop: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <span style={{ padding: "4px 12px", background: primary + "15", borderRadius: 8, fontSize: 11, fontWeight: 600, color: primary }}>☁️ Word Cloud</span>
           <span style={{ fontSize: 12, color: textDim }}>{totalVotes} responses</span>
         </div>
-        <h3 style={{ fontFamily: fontTitle, fontSize: 18, fontWeight: 700, marginBottom: 12 }}>{interactive.question}</h3>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 50 }}>
-          {totalVotes === 0 ? <p style={{ color: textDim, fontSize: 13 }}>Waiting for responses...</p> :
-            Object.entries(votes).map(([w, c]) => (
-              <span key={w} style={{ padding: "6px 14px", background: primary + "15", border: "1px solid " + primary + "25", borderRadius: 16, fontSize: 11 + c * 3, fontWeight: 600, color: primary }}>{w}</span>
-            ))}
-        </div>
+        <h3 style={{ fontFamily: fontTitle, fontSize: 20, fontWeight: 700, marginBottom: 20, textAlign: "center" }}>{interactive.question}</h3>
+        
+        {totalVotes === 0 ? (
+          <div style={{ textAlign: "center", padding: "50px 20px" }}>
+            <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>☁️</div>
+            <p style={{ color: textDim, fontSize: 14 }}>Waiting for responses...</p>
+            <p style={{ color: textDim, fontSize: 12, marginTop: 4, opacity: 0.6 }}>Words will appear here as audience submits them</p>
+          </div>
+        ) : (
+          <div style={{ position: "relative", minHeight: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {/* Soft glow */}
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, " + primary + "06 0%, transparent 70%)", borderRadius: 12 }} />
+            <div style={{ position: "relative", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "6px 10px", padding: 16, maxWidth: 600 }}>
+              {entries.sort((a, b) => b[1] - a[1]).map(([word, count], i) => {
+                const ratio = count / maxCount;
+                const fontSize = Math.max(13, Math.min(48, 13 + ratio * 35));
+                const fontWeight = ratio > 0.7 ? 800 : ratio > 0.4 ? 700 : ratio > 0.2 ? 600 : 500;
+                const color = cloudColors[i % cloudColors.length];
+                const opacity = 0.5 + ratio * 0.5;
+                const rotation = ((i * 7 + 3) % 15) - 7;
+                return (
+                  <span key={word} style={{
+                    fontSize, fontWeight, color, opacity,
+                    fontFamily: "'Outfit', sans-serif",
+                    transform: `rotate(${rotation}deg)`,
+                    letterSpacing: fontSize > 30 ? "-0.02em" : "0",
+                    textShadow: ratio > 0.5 ? `0 0 24px ${color}25` : "none",
+                    padding: "2px 6px",
+                    transition: "all 0.5s cubic-bezier(.4,0,.2,1)",
+                    cursor: "default",
+                  }}
+                    title={`${word}: ${count} vote${count > 1 ? "s" : ""}`}>
+                    {word}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -672,7 +672,7 @@ export default function SlidePulseEditor() {
                     {Array.from({ length: 9 }, (_, i) => <line key={`h${i}`} x1={0} y1={i * 50} x2={800} y2={i * 50} stroke="#6366F1" strokeWidth="0.5" />)}
                   </svg>
                 )}
-                {activeSlide?.elements.map(el => renderElement(el, false))}
+                {(activeSlide?.elements || []).map(el => renderElement(el, false))}
               </div>
             </div>
           </div>
@@ -712,7 +712,7 @@ export default function SlidePulseEditor() {
           <span style={{ fontSize: 10, color: "#4a5070" }}>Slide {activeSlideIndex + 1} of {slides.length}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 10, color: "#4a5070" }}>{activeSlide?.elements.length} elements</span>
+          <span style={{ fontSize: 10, color: "#4a5070" }}>{(activeSlide?.elements || []).length} elements</span>
           {isMobile && <button onClick={() => { setShowRightPanel(!showRightPanel); setShowLeftPanel(false); }} style={{ background: showRightPanel ? "#6366F120" : "transparent", border: "1px solid #1e2235", borderRadius: 6, padding: "4px 8px", color: showRightPanel ? "#6366F1" : "#64748B", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>Properties</button>}
         </div>
       </div>
@@ -728,7 +728,7 @@ function InteractiveElement({ el, isPresentation, onUpdate }) {
     return (
       <div style={{ width: "100%", height: "100%", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ fontSize: 16, fontWeight: 600, color: "#E2E8F0", fontFamily: "'Outfit', sans-serif" }}>{el.question}</div>
-        {el.options.map((opt, i) => {
+        {(el.options || []).map((opt, i) => {
           const pct = totalVotes > 0 ? Math.round(el.votes[i] / totalVotes * 100) : 0;
           return (
             <div key={i} onClick={() => {
@@ -756,7 +756,7 @@ function InteractiveElement({ el, isPresentation, onUpdate }) {
       <div style={{ width: "100%", height: "100%", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ fontSize: 16, fontWeight: 600, color: "#E2E8F0", fontFamily: "'Outfit', sans-serif" }}>{el.question}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, flex: 1 }}>
-          {el.options.map((opt, i) => {
+          {(el.options || []).map((opt, i) => {
             const isCorrect = i === el.correctIndex;
             const colors = ["#6366F1", "#EC4899", "#F97316", "#22C55E"];
             const revealed = el.revealed;
@@ -783,10 +783,10 @@ function InteractiveElement({ el, isPresentation, onUpdate }) {
   }
 
   if (el.interactiveType === "wordCloud") {
-    const maxLen = Math.max(...el.words.map(w => w.length), 1);
+    const maxLen = Math.max(...(el.words || []).map(w => w.length), 1);
     return (
       <div style={{ width: "100%", height: "100%", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 10, padding: 20 }}>
-        {el.words.map((word, i) => {
+        {(el.words || []).map((word, i) => {
           const size = Math.max(14, Math.min(36, 36 - (word.length / maxLen) * 16 + Math.random() * 10));
           const color = ACCENT_COLORS[i % ACCENT_COLORS.length];
           return (
@@ -918,7 +918,7 @@ function ElementProperties({ el, onUpdate, onDelete }) {
             <input value={el.question} onChange={e => onUpdate({ question: e.target.value })} style={inputStyle} />
           </PropSection>
           <PropSection title="Options">
-            {el.options.map((opt, i) => (
+            {(el.options || []).map((opt, i) => (
               <div key={i} style={{ display: "flex", gap: 4, marginBottom: 4 }}>
                 <input value={opt} onChange={e => { const no = [...el.options]; no[i] = e.target.value; onUpdate({ options: no }); }} style={{ ...inputStyle, flex: 1 }} />
                 {el.options.length > 2 && (
@@ -931,7 +931,7 @@ function ElementProperties({ el, onUpdate, onDelete }) {
             )}
           </PropSection>
           <PropSection title="Reset Votes">
-            <button onClick={() => onUpdate({ votes: el.votes.map(() => 0) })} style={{ width: "100%", padding: "6px", background: "#151825", border: "1px solid #1e2235", borderRadius: 6, color: "#94A3B8", fontSize: 11, cursor: "pointer" }}>Reset All Votes</button>
+            <button onClick={() => onUpdate({ votes: (el.votes || []).map(() => 0) })} style={{ width: "100%", padding: "6px", background: "#151825", border: "1px solid #1e2235", borderRadius: 6, color: "#94A3B8", fontSize: 11, cursor: "pointer" }}>Reset All Votes</button>
           </PropSection>
         </>
       )}
@@ -942,7 +942,7 @@ function ElementProperties({ el, onUpdate, onDelete }) {
             <input value={el.question} onChange={e => onUpdate({ question: e.target.value })} style={inputStyle} />
           </PropSection>
           <PropSection title="Answers">
-            {el.options.map((opt, i) => (
+            {(el.options || []).map((opt, i) => (
               <div key={i} style={{ display: "flex", gap: 4, marginBottom: 4, alignItems: "center" }}>
                 <input type="radio" name="correct" checked={el.correctIndex === i} onChange={() => onUpdate({ correctIndex: i })} style={{ accentColor: "#22C55E" }} />
                 <input value={opt} onChange={e => { const no = [...el.options]; no[i] = e.target.value; onUpdate({ options: no }); }} style={{ ...inputStyle, flex: 1 }} />
@@ -959,7 +959,7 @@ function ElementProperties({ el, onUpdate, onDelete }) {
 
       {el.type === "interactive" && el.interactiveType === "wordCloud" && (
         <PropSection title="Words">
-          <PropInput label="Words (comma separated)" value={el.words.join(", ")} onChange={v => onUpdate({ words: v.split(",").map(w => w.trim()).filter(Boolean) })} textarea />
+          <PropInput label="Words (comma separated)" value={(el.words || []).join(", ")} onChange={v => onUpdate({ words: v.split(",").map(w => w.trim()).filter(Boolean) })} textarea />
         </PropSection>
       )}
 

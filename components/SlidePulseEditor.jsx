@@ -232,7 +232,7 @@ export default function SlidePulseEditor() {
   const addSlide = (templateKey = "blank") => {
     const tpl = SLIDE_TEMPLATES[templateKey];
     const newSlide = { ...JSON.parse(JSON.stringify(tpl)), id: uid() };
-    newSlide.elements.forEach(el => {
+    (newSlide.elements || []).forEach(el => {
       el.id = uid();
       if (el.src === "__QR_JOIN__") el.src = QR_JOIN_SVG;
     });
@@ -245,7 +245,7 @@ export default function SlidePulseEditor() {
   const duplicateSlide = (idx) => {
     const clone = JSON.parse(JSON.stringify(slides[idx]));
     clone.id = uid();
-    clone.elements.forEach(e => e.id = uid());
+    (clone.elements || []).forEach(e => e.id = uid());
     const ns = [...slides];
     ns.splice(idx + 1, 0, clone);
     updateSlides(ns);
@@ -278,7 +278,7 @@ export default function SlidePulseEditor() {
       chart: { x: 100, y: 80, w: 350, h: 280, chartType: "pie", chartData: [{ label: "A", value: 40, color: "#6366F1" }, { label: "B", value: 30, color: "#8B5CF6" }, { label: "C", value: 20, color: "#EC4899" }, { label: "D", value: 10, color: "#06B6D4" }] },
     };
     const el = { id: uid(), type, ...defaults[type], ...extra };
-    const ns = slides.map((s, i) => i === activeSlideIndex ? { ...s, elements: [...s.elements, el] } : s);
+    const ns = slides.map((s, i) => i === activeSlideIndex ? { ...s, elements: [...(s.elements || []), el] } : s);
     updateSlides(ns);
     setSelectedElementId(el.id);
   };
@@ -286,7 +286,7 @@ export default function SlidePulseEditor() {
   const updateElement = (id, updates) => {
     const ns = slides.map((s, i) => i === activeSlideIndex ? {
       ...s,
-      elements: s.elements.map(e => e.id === id ? { ...e, ...updates } : e)
+      elements: (s.elements || []).map(e => e.id === id ? { ...e, ...updates } : e)
     } : s);
     updateSlides(ns);
   };
@@ -294,7 +294,7 @@ export default function SlidePulseEditor() {
   const deleteElement = (id) => {
     const ns = slides.map((s, i) => i === activeSlideIndex ? {
       ...s,
-      elements: s.elements.filter(e => e.id !== id)
+      elements: (s.elements || []).filter(e => e.id !== id)
     } : s);
     updateSlides(ns);
     setSelectedElementId(null);
@@ -339,7 +339,7 @@ export default function SlidePulseEditor() {
         const dx = (e.clientX - dragState.startX) / dragState.scale;
         const dy = (e.clientY - dragState.startY) / dragState.scale;
         const ns = slides.map((s, i) => i === activeSlideIndex ? {
-          ...s, elements: s.elements.map(el => el.id === dragState.id ? { ...el, x: Math.round(dragState.origX + dx), y: Math.round(dragState.origY + dy) } : el)
+          ...s, elements: (s.elements || []).map(el => el.id === dragState.id ? { ...el, x: Math.round(dragState.origX + dx), y: Math.round(dragState.origY + dy) } : el)
         } : s);
         setSlides(ns);
       }
@@ -353,7 +353,7 @@ export default function SlidePulseEditor() {
         if (handle.includes("s")) nh = Math.max(20, origH + dy);
         if (handle.includes("n")) { nh = Math.max(20, origH - dy); ny = origY + (origH - nh); }
         const ns = slides.map((s, i) => i === activeSlideIndex ? {
-          ...s, elements: s.elements.map(el => el.id === resizeState.id ? { ...el, x: Math.round(nx), y: Math.round(ny), w: Math.round(nw), h: Math.round(nh) } : el)
+          ...s, elements: (s.elements || []).map(el => el.id === resizeState.id ? { ...el, x: Math.round(nx), y: Math.round(ny), w: Math.round(nw), h: Math.round(nh) } : el)
         } : s);
         setSlides(ns);
       }

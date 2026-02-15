@@ -171,9 +171,17 @@ export default function PresenterView() {
 
   const selectPresentation = (pres) => {
     setSelectedPres(pres);
-    let slides;
-    try { slides = typeof pres.slides === "string" ? JSON.parse(pres.slides) : pres.slides; } catch { slides = []; }
-    setAllSlides(Array.isArray(slides) ? slides : []);
+    let slides = [];
+    try {
+      let raw = pres.slides;
+      // If it's a string, parse it
+      if (typeof raw === "string") raw = JSON.parse(raw);
+      // If it's STILL a string (double-stringified), parse again
+      if (typeof raw === "string") raw = JSON.parse(raw);
+      slides = Array.isArray(raw) ? raw : [];
+    } catch { slides = []; }
+    console.log("[SlidePlus Presenter] Loaded slides:", slides.length, slides);
+    setAllSlides(slides);
   };
 
   const startSession = async () => {
@@ -240,7 +248,7 @@ export default function PresenterView() {
               ) : presentations.length === 0 ? (
                 <p style={{ color: textDim, textAlign: "center", padding: 40, fontSize: 14 }}>No presentations found. Create one in the editor first.</p>
               ) : presentations.map((p) => {
-                let sc = 0; try { const s = typeof p.slides === "string" ? JSON.parse(p.slides) : p.slides; sc = Array.isArray(s) ? s.length : 0; } catch {}
+                let sc = 0; try { let s = typeof p.slides === "string" ? JSON.parse(p.slides) : p.slides; if (typeof s === "string") s = JSON.parse(s); sc = Array.isArray(s) ? s.length : 0; } catch {}
                 return (
                   <button key={p.id} onClick={() => selectPresentation(p)}
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: card, border: "1px solid " + border, borderRadius: 12, cursor: "pointer", fontFamily: font, transition: "all 0.15s", textAlign: "left", width: "100%" }}

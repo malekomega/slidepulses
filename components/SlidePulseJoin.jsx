@@ -203,7 +203,7 @@ export default function AudienceView() {
           .single();
         if (presData) {
           let slides;
-          try { slides = typeof presData.slides === "string" ? JSON.parse(presData.slides) : presData.slides; } catch { slides = []; }
+          try { slides = typeof presData.slides === "string" ? JSON.parse(presData.slides) : presData.slides; if (typeof slides === "string") slides = JSON.parse(slides); } catch { slides = []; }
           setAllSlides(parseSlides(slides));
         }
       }

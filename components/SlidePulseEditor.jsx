@@ -179,8 +179,10 @@ export default function SlidePulseEditor() {
       if (error || !data) return;
       setPresentationTitle(data.title || "Untitled Presentation");
       try {
-        const parsed = typeof data.slides === "string" ? JSON.parse(data.slides) : data.slides;
-if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(parsed);      } catch {}
+        let parsed = typeof data.slides === "string" ? JSON.parse(data.slides) : data.slides;
+        if (typeof parsed === "string") parsed = JSON.parse(parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) setSlides(parsed);
+      } catch {}
     };
     load();
   }, [searchParams]);
@@ -190,7 +192,8 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
     if (!presentationId) { alert("No presentation to save. Create one from Dashboard first."); return; }
     setSaving(true);
     try {
-      const { error } = await supabase.from("presentations").update({ title: presentationTitle, slides: JSON.stringify(slides), updated_at: new Date().toISOString() }).eq("id", presentationId);
+      // Send slides as native array (works for both jsonb and text columns)
+      const { error } = await supabase.from("presentations").update({ title: presentationTitle, slides: slides, updated_at: new Date().toISOString() }).eq("id", presentationId);
       if (error) throw error;
       setLastSaved(new Date());
     } catch (e) { alert("Save failed: " + (e?.message || "")); }

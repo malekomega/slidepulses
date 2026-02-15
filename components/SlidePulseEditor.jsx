@@ -202,7 +202,7 @@ export default function SlidePulseEditor() {
   const canvasRef = useRef(null);
 
   const activeSlide = slides[activeSlideIndex];
-  const selectedElement = activeSlide?.elements.find(e => e.id === selectedElementId);
+  const selectedElement = (activeSlide?.elements || []).find(e => e.id === selectedElementId);
 
   // ─── HISTORY ───
   const pushHistory = useCallback((newSlides) => {
@@ -317,7 +317,8 @@ export default function SlidePulseEditor() {
     e.stopPropagation();
     if (editingTextId === elId) return;
     setSelectedElementId(elId);
-    const el = activeSlide.elements.find(x => x.id === elId);
+    const el = (activeSlide?.elements || []).find(x => x.id === elId);
+    if (!el) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const scale = rect.width / 800;
     setDragState({ id: elId, startX: e.clientX, startY: e.clientY, origX: el.x, origY: el.y, scale });
@@ -325,7 +326,8 @@ export default function SlidePulseEditor() {
 
   const handleResizeMouseDown = (e, elId, handle) => {
     e.stopPropagation();
-    const el = activeSlide.elements.find(x => x.id === elId);
+    const el = (activeSlide?.elements || []).find(x => x.id === elId);
+    if (!el) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const scale = rect.width / 800;
     setResizeState({ id: elId, handle, startX: e.clientX, startY: e.clientY, origX: el.x, origY: el.y, origW: el.w, origH: el.h, scale });
@@ -528,7 +530,7 @@ export default function SlidePulseEditor() {
       <div style={{ position: "fixed", inset: 0, background: "#000", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif" }}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <div style={{ position: "relative", width: "100vw", height: "56.25vw", maxHeight: "100vh", maxWidth: "177.78vh", background: slide.bg, overflow: "hidden" }}>
-          {slide.elements.map(el => {
+          {(slide.elements || []).map(el => {
             const scaleX = (typeof window !== 'undefined' ? Math.min(window.innerWidth, window.innerHeight * 16/9) : 800) / 800;
             const scaleY = (typeof window !== 'undefined' ? Math.min(window.innerHeight, window.innerWidth * 9/16) : 450) / 450;
             return renderElement({ ...el, x: el.x * scaleX, y: el.y * scaleY, w: el.w * scaleX, h: el.h * scaleY, fontSize: el.fontSize ? el.fontSize * scaleX : undefined }, true);
@@ -604,7 +606,7 @@ export default function SlidePulseEditor() {
                 {/* Thumbnail */}
                 <div style={{ position: "relative", paddingTop: "56.25%", background: slide.bg, borderRadius: 6, overflow: "hidden" }}>
                   <div style={{ position: "absolute", inset: 0, transform: "scale(0.22)", transformOrigin: "top left", width: 800, height: 450, pointerEvents: "none" }}>
-                    {slide.elements.map(el => renderElement(el, true))}
+                    {(slide.elements || []).map(el => renderElement(el, true))}
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px" }}>
@@ -818,7 +820,7 @@ function SlideProperties({ slide, onBgChange }) {
         </div>
       </PropSection>
       <PropSection title="Info">
-        <div style={{ fontSize: 12, color: "#64748B" }}>{slide.elements.length} elements on this slide</div>
+        <div style={{ fontSize: 12, color: "#64748B" }}>{(slide.elements || []).length} elements on this slide</div>
       </PropSection>
     </div>
   );

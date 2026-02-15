@@ -783,14 +783,45 @@ function InteractiveElement({ el, isPresentation, onUpdate }) {
   }
 
   if (el.interactiveType === "wordCloud") {
-    const maxLen = Math.max(...(el.words || []).map(w => w.length), 1);
+    const words = el.words || [];
+    const maxFreq = words.length;
+    // Create weighted distribution - first words are "most popular"
+    const weights = words.map((_, i) => Math.max(1, maxFreq - i + Math.floor(Math.random() * 3)));
+    const maxW = Math.max(...weights, 1);
+    const cloudColors = ["#818CF8", "#A78BFA", "#F472B6", "#34D399", "#60A5FA", "#FBBF24", "#F87171", "#2DD4BF", "#C084FC", "#FB923C"];
+    // Deterministic positions using golden angle for spiral-like placement
+    const positions = words.map((_, i) => {
+      const angle = i * 137.508 * (Math.PI / 180);
+      const radius = 12 + Math.sqrt(i) * 18;
+      const cx = 50 + Math.cos(angle) * Math.min(radius, 42);
+      const cy = 50 + Math.sin(angle) * Math.min(radius, 38);
+      return { x: cx, y: cy };
+    });
     return (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 10, padding: 20 }}>
-        {(el.words || []).map((word, i) => {
-          const size = Math.max(14, Math.min(36, 36 - (word.length / maxLen) * 16 + Math.random() * 10));
-          const color = ACCENT_COLORS[i % ACCENT_COLORS.length];
+      <div style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
+        {/* Soft radial glow background */}
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, #6366F108 0%, transparent 70%)" }} />
+        {words.map((word, i) => {
+          const w = weights[i];
+          const ratio = w / maxW;
+          const fontSize = Math.max(11, Math.min(42, 11 + ratio * 31));
+          const fontWeight = ratio > 0.7 ? 800 : ratio > 0.4 ? 700 : 500;
+          const color = cloudColors[i % cloudColors.length];
+          const opacity = 0.55 + ratio * 0.45;
+          const pos = positions[i];
+          const rotation = ((i * 7 + 3) % 25) - 12;
           return (
-            <span key={i} style={{ fontSize: size, fontWeight: Math.random() > 0.5 ? 700 : 500, color, fontFamily: "'Outfit', sans-serif", opacity: 0.7 + Math.random() * 0.3, transform: `rotate(${(Math.random() - 0.5) * 12}deg)`, transition: "all 0.3s" }}>
+            <span key={i} style={{
+              position: "absolute",
+              left: `${pos.x}%`, top: `${pos.y}%`,
+              transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+              fontSize, fontWeight, color, opacity,
+              fontFamily: "'Outfit', sans-serif",
+              letterSpacing: fontSize > 28 ? "-0.02em" : "0",
+              textShadow: ratio > 0.6 ? `0 0 20px ${color}30` : "none",
+              whiteSpace: "nowrap",
+              transition: "all 0.4s cubic-bezier(.4,0,.2,1)",
+            }}>
               {word}
             </span>
           );

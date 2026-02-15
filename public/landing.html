@@ -560,7 +560,7 @@
             <div class="contact-icon" style="background:#6366F112;color:#6366F1">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
             </div>
-            <div><div style="font-size:12px;color:var(--text-dim)">Email</div><div style="font-size:15px;font-weight:500"><a href="mailto:info@slideplus.io" style="color:var(--primary-light)">info@slideplus.io</a></div></div>
+            <div><div style="font-size:12px;color:var(--text-dim)">Email</div><div style="font-size:15px;font-weight:500"><a href="/cdn-cgi/l/email-protection#a6cfc8c0c9e6d5cacfc2c3d6cad3d588cfc9" style="color:var(--primary-light)"><span class="__cf_email__" data-cfemail="21484f474e61524d484544514d54520f484e">[email&#160;protected]</span></a></div></div>
           </div>
           <div class="contact-card">
             <div class="contact-icon" style="background:#8B5CF612;color:#8B5CF6">
@@ -635,7 +635,7 @@
   </footer>
 
   <!-- ═══ JAVASCRIPT ═══ -->
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // ─── SMOOTH SCROLL ───
     function smoothScroll(id) { document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' }); }
 
@@ -686,6 +686,7 @@
       renderPricing();
     }
     function renderPricing() {
+      var LS_MONTHLY = 'https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650'; var LS_ANNUAL = 'https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f';
       const plans = [
         { name:'Free', price:0, desc:'For individuals getting started', features:['5 presentations','Unlimited audience','Basic templates','Live polls & quizzes','Community support','SlidePlus branding'], cta:'Get Started', popular:false },
         { name:'Pro', price: isAnnual?6:9, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Start Pro Trial', popular:true },
@@ -697,7 +698,7 @@
           <h3>${p.name}</h3>
           <p class="desc">${p.desc}</p>
           <div style="margin-bottom:24px">${p.price !== null ? `<span class="price-amount">$${p.price}</span><span class="price-period">/month</span>` : '<span class="price-amount" style="font-size:32px">Custom</span>'}</div>
-          <a href="${p.popular ? '/signup?plan=pro' : p.price === 0 ? '/signup' : '#contact'}" class="${p.popular ? 'btn-primary' : 'btn-secondary'}" style="width:100%;justify-content:center;padding:13px;margin-bottom:24px;text-decoration:none" ${p.price === null ? 'onclick="smoothScroll(\'contact\')"' : ''}>${p.cta}</a>
+          <a href="${p.popular ? (isAnnual ? LS_ANNUAL : LS_MONTHLY) : p.price === 0 ? '/signup' : '#contact'}" class="${p.popular ? 'btn-primary' : 'btn-secondary'}" style="width:100%;justify-content:center;padding:13px;margin-bottom:24px;text-decoration:none" ${p.price === null ? 'onclick="smoothScroll(\'contact\')"' : ''}>${p.cta}</a>
           <div class="price-features">${p.features.map(f => `<div class="price-feature"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>${f}</div>`).join('')}</div>
         </div>
       `).join('');
@@ -723,7 +724,6 @@
         <div class="faq-a"><p>${a}</p></div>
       </div>
     `).join('');
-    document.querySelectorAll('.faq-item').forEach(el => observer.observe(el));
 
     function toggleFaq(btn) {
       const item = btn.parentElement;

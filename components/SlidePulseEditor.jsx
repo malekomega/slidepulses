@@ -352,7 +352,7 @@ if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].elements) setSlides(
         return;
       }
       if (editingTextId) return;
-      if (e.key === "Delete" || e.key === "Backspace") {
+      if (e.key === "Delete") {
         if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
       }
       if (e.ctrlKey || e.metaKey) {

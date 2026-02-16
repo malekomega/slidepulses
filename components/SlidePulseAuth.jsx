@@ -297,10 +297,10 @@ function SignupPage({ onSwitch, onLogin }) {
       const params = new URLSearchParams(window.location.search);
       const plan = params.get("plan");
       if (plan === "monthly") {
-        window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(email);
+        window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(email);
         return;
       } else if (plan === "annual") {
-        window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(email);
+        window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(email);
         return;
       }
       onLogin({ id: data.user.id, email: data.user.email, name });
@@ -737,8 +737,8 @@ export default function SlidePulseAuth({ initialPage = "login" }) {
           // Check if user needs to be redirected to payment
           const params = new URLSearchParams(window.location.search);
           const plan = params.get("plan");
-          if (plan === "monthly") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
-          if (plan === "annual") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
+          if (plan === "monthly") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
+          if (plan === "annual") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
           setPage("dashboard");
         }
       } catch (err) {
@@ -756,8 +756,8 @@ export default function SlidePulseAuth({ initialPage = "login" }) {
         setUser({ id: u.id, email: u.email, name: u.user_metadata?.full_name || u.email.split("@")[0] });
         const params = new URLSearchParams(window.location.search);
         const plan = params.get("plan");
-        if (plan === "monthly") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
-        if (plan === "annual") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
+        if (plan === "monthly") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
+        if (plan === "annual") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
         setPage("dashboard");
       }
     });

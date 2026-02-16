@@ -583,6 +583,10 @@ function Dashboard({ user, onLogout }) {
               <button onClick={() => setView("grid")} style={{ padding: "7px 10px", background: view === "grid" ? "#151825" : "transparent", border: "none", color: view === "grid" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.Grid /></button>
               <button onClick={() => setView("list")} style={{ padding: "7px 10px", background: view === "list" ? "#151825" : "transparent", border: "none", color: view === "list" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.List /></button>
             </div>
+            <a href="/#pricing" style={{ display: "flex", alignItems: "center", gap: 5, padding: isMobile ? "9px 12px" : "9px 16px", background: "#0D0F14", border: "1px solid #F59E0B40", borderRadius: 10, color: "#F59E0B", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'", textDecoration: "none", whiteSpace: "nowrap" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              {!isMobile && "Upgrade Plan"}
+            </a>
             <button onClick={handleCreate} disabled={creating} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "9px 14px" : "9px 20px", background: creating ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 600, cursor: creating ? "wait" : "pointer", fontFamily: "'DM Sans'" }}>
               {creating ? <div style={{ width: 16, height: 16, border: "2px solid #fff4", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : <><I.Plus /> {!isMobile && "New Presentation"}</>}
             </button>

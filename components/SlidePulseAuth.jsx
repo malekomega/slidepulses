@@ -294,6 +294,15 @@ function SignupPage({ onSwitch, onLogin }) {
     try {
       const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
       if (error) throw error;
+      const params = new URLSearchParams(window.location.search);
+      const plan = params.get("plan");
+      if (plan === "monthly") {
+        window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(email);
+        return;
+      } else if (plan === "annual") {
+        window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(email);
+        return;
+      }
       onLogin({ id: data.user.id, email: data.user.email, name });
     } catch (err) {
       alert(err.message || "Signup failed");
@@ -313,8 +322,8 @@ function SignupPage({ onSwitch, onLogin }) {
 
         <div style={{ background: "#0A0C12", border: "1px solid #131520", borderRadius: 16, padding: "32px 28px" }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <SocialBtn icon={<I.Google />} label="Google" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/dashboard" } }); if (error) alert("Google login failed: " + error.message); }} />
-            <SocialBtn icon={<I.Microsoft />} label="Microsoft" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { redirectTo: window.location.origin + "/dashboard", scopes: "email profile openid" } }); if (error) alert("Microsoft login failed: " + error.message); }} />
+            <SocialBtn icon={<I.Google />} label="Google" onClick={async () => { const plan = new URLSearchParams(window.location.search).get("plan"); const redir = window.location.origin + (plan ? "/dashboard?plan=" + plan : "/dashboard"); const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: redir } }); if (error) alert("Google login failed: " + error.message); }} />
+            <SocialBtn icon={<I.Microsoft />} label="Microsoft" onClick={async () => { const plan = new URLSearchParams(window.location.search).get("plan"); const redir = window.location.origin + (plan ? "/dashboard?plan=" + plan : "/dashboard"); const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { redirectTo: redir, scopes: "email profile openid" } }); if (error) alert("Microsoft login failed: " + error.message); }} />
           </div>
           <Divider />
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
@@ -583,8 +592,8 @@ function Dashboard({ user, onLogout }) {
               <button onClick={() => setView("grid")} style={{ padding: "7px 10px", background: view === "grid" ? "#151825" : "transparent", border: "none", color: view === "grid" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.Grid /></button>
               <button onClick={() => setView("list")} style={{ padding: "7px 10px", background: view === "list" ? "#151825" : "transparent", border: "none", color: view === "list" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.List /></button>
             </div>
-            <a href="/#pricing" style={{ display: "flex", alignItems: "center", gap: 5, padding: isMobile ? "9px 12px" : "9px 16px", background: "#0D0F14", border: "1px solid #F59E0B40", borderRadius: 10, color: "#F59E0B", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'", textDecoration: "none", whiteSpace: "nowrap" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 5, padding: isMobile ? "9px 12px" : "9px 16px", background: "linear-gradient(135deg, #F59E0B15, #F59E0B08)", border: "1px solid #F59E0B30", borderRadius: 10, color: "#F59E0B", fontSize: 13, fontWeight: 600, textDecoration: "none", fontFamily: "'DM Sans'", whiteSpace: "nowrap" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               {!isMobile && "Upgrade Plan"}
             </a>
             <button onClick={handleCreate} disabled={creating} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "9px 14px" : "9px 20px", background: creating ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 600, cursor: creating ? "wait" : "pointer", fontFamily: "'DM Sans'" }}>
@@ -725,6 +734,11 @@ export default function SlidePulseAuth({ initialPage = "login" }) {
         if (session && session.user) {
           const u = session.user;
           setUser({ id: u.id, email: u.email, name: u.user_metadata?.full_name || u.email.split("@")[0] });
+          // Check if user needs to be redirected to payment
+          const params = new URLSearchParams(window.location.search);
+          const plan = params.get("plan");
+          if (plan === "monthly") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
+          if (plan === "annual") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
           setPage("dashboard");
         }
       } catch (err) {
@@ -740,6 +754,10 @@ export default function SlidePulseAuth({ initialPage = "login" }) {
       if (event === "SIGNED_IN" && session?.user) {
         const u = session.user;
         setUser({ id: u.id, email: u.email, name: u.user_metadata?.full_name || u.email.split("@")[0] });
+        const params = new URLSearchParams(window.location.search);
+        const plan = params.get("plan");
+        if (plan === "monthly") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
+        if (plan === "annual") { window.location.href = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
         setPage("dashboard");
       }
     });

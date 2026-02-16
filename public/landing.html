@@ -686,22 +686,26 @@
       renderPricing();
     }
     function renderPricing() {
-      var LS_MONTHLY = 'https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650'; var LS_ANNUAL = 'https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f';
       const plans = [
         { name:'Free', price:0, desc:'For individuals getting started', features:['5 presentations','Unlimited audience','Basic templates','Live polls & quizzes','Community support','SlidePlus branding'], cta:'Get Started', popular:false },
-        { name:'Pro', price: isAnnual?6:9, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Start Pro Trial', popular:true },
+        { name:'Pro', price: isAnnual?6:9.99, desc:'For professionals and teams', features:['Unlimited presentations','Up to 500 participants','Premium templates','All interactive tools','Analytics dashboard','Priority support','Custom branding','Export to PDF/PPTX'], cta:'Upgrade to Pro', popular:true },
         { name:'Enterprise', price:null, desc:'For large organizations', features:['Everything in Pro','Unlimited participants','SSO & SAML','Admin panel','Regional data hosting','Dedicated support','Custom integrations','SLA guarantee'], cta:'Contact Sales', popular:false },
       ];
-      document.getElementById('pricingGrid').innerHTML = plans.map((p, i) => `
-        <div class="price-card ${p.popular?'popular':''} reveal visible" style="animation:fadeUp .4s ease ${i*.08}s both">
-          ${p.popular ? '<div class="price-badge">Popular</div>' : ''}
-          <h3>${p.name}</h3>
-          <p class="desc">${p.desc}</p>
-          <div style="margin-bottom:24px">${p.price !== null ? `<span class="price-amount">$${p.price}</span><span class="price-period">/month</span>` : '<span class="price-amount" style="font-size:32px">Custom</span>'}</div>
-          <a href="${p.popular ? (isAnnual ? LS_ANNUAL : LS_MONTHLY) : p.price === 0 ? '/signup' : '#contact'}" class="${p.popular ? 'btn-primary' : 'btn-secondary'}" style="width:100%;justify-content:center;padding:13px;margin-bottom:24px;text-decoration:none" ${p.price === null ? 'onclick="smoothScroll(\'contact\')"' : ''}>${p.cta}</a>
-          <div class="price-features">${p.features.map(f => `<div class="price-feature"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>${f}</div>`).join('')}</div>
-        </div>
-      `).join('');
+      document.getElementById('pricingGrid').innerHTML = plans.map((p, i) => {
+        var href = p.price === 0 ? '/signup' : p.price === null ? '#contact' : ('/signup?plan=' + (isAnnual ? 'annual' : 'monthly'));
+        var cls = p.popular ? 'btn-primary' : 'btn-secondary';
+        var extra = p.price === null ? 'onclick="smoothScroll(\'contact\')"' : '';
+        var priceHtml = p.price !== null ? '<span class="price-amount">$' + p.price + '</span><span class="price-period">/month</span>' : '<span class="price-amount" style="font-size:32px">Custom</span>';
+        if (p.popular && isAnnual) priceHtml += '<div style="font-size:12px;color:#22C55E;margin-top:4px;font-weight:600">$72/year — Save 40%</div>';
+        return '<div class="price-card ' + (p.popular ? 'popular' : '') + ' reveal visible" style="animation:fadeUp .4s ease ' + (i * 0.08) + 's both">'
+          + (p.popular ? '<div class="price-badge">Popular</div>' : '')
+          + '<h3>' + p.name + '</h3>'
+          + '<p class="desc">' + p.desc + '</p>'
+          + '<div style="margin-bottom:24px">' + priceHtml + '</div>'
+          + '<a href="' + href + '" class="' + cls + '" style="width:100%;justify-content:center;padding:13px;margin-bottom:24px;text-decoration:none" ' + extra + '>' + p.cta + '</a>'
+          + '<div class="price-features">' + p.features.map(function(f) { return '<div class="price-feature"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>' + f + '</div>'; }).join('') + '</div>'
+          + '</div>';
+      }).join('');
     }
     renderPricing();
 

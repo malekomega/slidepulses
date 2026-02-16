@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 
-const LS_MONTHLY = "https://slidepulse.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650";
-const LS_ANNUAL = "https://slidepulse.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f";
+const LS_MONTHLY = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650";
+const LS_ANNUAL = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f";
 
 const Check = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>;
 

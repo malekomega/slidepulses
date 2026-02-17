@@ -167,7 +167,23 @@ export default function SlidePulseEditor() {
   const [presentationTitle, setPresentationTitle] = useState("Untitled Presentation");
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [userPlan, setUserPlan] = useState("free");
   const searchParams = useSearchParams();
+
+  // Fetch user plan
+  useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase.from("subscriptions").select("plan, status").eq("user_id", user.id).eq("status", "active").single();
+        if (data?.plan === "pro") { setUserPlan("pro"); return; }
+        const { data: byEmail } = await supabase.from("subscriptions").select("plan, status").eq("user_email", user.email?.toLowerCase()).eq("status", "active").single();
+        if (byEmail?.plan === "pro") setUserPlan("pro");
+      } catch {}
+    };
+    fetchPlan();
+  }, []);
 
   // Load presentation from Supabase if ?id= is in URL
   useEffect(() => {
@@ -535,6 +551,15 @@ export default function SlidePulseEditor() {
             const scaleY = (typeof window !== 'undefined' ? Math.min(window.innerHeight, window.innerWidth * 9/16) : 450) / 450;
             return renderElement({ ...el, x: el.x * scaleX, y: el.y * scaleY, w: el.w * scaleX, h: el.h * scaleY, fontSize: el.fontSize ? el.fontSize * scaleX : undefined }, true);
           })}
+          {/* Watermark for free plan */}
+          {userPlan !== "pro" && (
+            <div style={{ position: "absolute", bottom: 16, right: 20, display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", background: "rgba(0,0,0,0.5)", borderRadius: 8, backdropFilter: "blur(4px)", zIndex: 10 }}>
+              <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="9" height="9" viewBox="0 0 268.05 270.45" fill="#fff"><path d="M198.37,131.77c-1.87-3.04-4.09-5.85-6.6-8.36-3.15-3.15-6.64-5.84-10.38-8.01v-51.63c0-5.43-1.86-10.12-5.5-13.91-3.51-3.65-7.72-5.71-12.51-6.14h-.06c-1.01-.09-2.03-.14-3.07-.14H62.93c-1.04,0-2.06.05-3.07.14h-.06c-4.79.43-9,2.49-12.51,6.14-3.65,3.79-5.5,8.48-5.5,13.91v133.41c0,5.43,1.86,10.12,5.5,13.91,3.51,3.65,7.72,5.71,12.51,6.14h.06c1.01.09,2.03.14,3.07.14h77.48c2.78,6.1,6.68,11.67,11.58,16.44l.16.15c8.31,8.03,18.22,12.71,29.42,13.89.79.08,1.58.14,2.37.17l2.16.05c.7.01,1.41,0,2.12-.02.85-.04,1.69-.1,2.53-.2,11.2-1.18,21.11-5.87,29.42-13.89,8.55-8.27,13.55-18.49,14.84-30.38.03-.24.05-.48.07-.72.16-1.94.24-3.9.24-5.87,0-11.96-3.55-22.68-10.54-31.82-1.77-2.31-3.72-4.48-5.83-6.47l-.29-.27c-.05-.04-.09-.08-.14-.12Z"/></svg>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#ffffff90", fontFamily: "'Outfit', sans-serif" }}>Made with SlidePlus</span>
+            </div>
+          )}
         </div>
         {/* Controls */}
         <div style={{ position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 12, alignItems: "center", background: "#151825ee", borderRadius: 12, padding: "8px 16px", backdropFilter: "blur(10px)" }}>
@@ -557,6 +582,7 @@ export default function SlidePulseEditor() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 10px", height: 52, background: "#0D0F14", borderBottom: "1px solid #151825", flexShrink: 0, gap: 6 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
           <a href="/dashboard" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: isMobile ? 14 : 16, color: "#E2E8F0", textDecoration: "none", cursor: "pointer", whiteSpace: "nowrap" }}>{"← SlidePlus"}</a>
+          <span style={{ padding: "2px 8px", borderRadius: 5, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", background: userPlan === "pro" ? "#6366F120" : "#F59E0B20", color: userPlan === "pro" ? "#6366F1" : "#F59E0B", whiteSpace: "nowrap" }}>{userPlan}</span>
           <input value={presentationTitle} onChange={(e) => setPresentationTitle(e.target.value)} style={{ padding: "5px 8px", background: "#0D0F14", border: "1px solid #1a1d2e", borderRadius: 6, color: "#E2E8F0", fontSize: 13, fontFamily: "'DM Sans'", outline: "none", width: isMobile ? 100 : 200, minWidth: 60 }} />
           <button onClick={handleSave} disabled={saving} style={{ padding: "6px 12px", background: saving ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 600, cursor: saving ? "wait" : "pointer", fontFamily: "'DM Sans'", whiteSpace: "nowrap" }}>{saving ? "..." : "Save"}</button>
           {!isMobile && lastSaved && <span style={{ fontSize: 11, color: "#4a5070" }}>Saved {lastSaved.toLocaleTimeString()}</span>}
@@ -568,11 +594,7 @@ export default function SlidePulseEditor() {
           {!isMobile && <ToolBtn icon={<Icons.Grid />} label="Grid" active={showGrid} onClick={() => setShowGrid(!showGrid)} />}
           {!isMobile && <div style={{ width: 1, height: 24, background: "#1e2235", margin: "0 6px" }} />}
           <ToolBtn icon={<Icons.Share />} label={isMobile ? "" : "Share"} onClick={() => { if (!presentationId) { return; } const url = window.location.origin + "/join"; navigator.clipboard.writeText(url); const toast = document.createElement("div"); toast.textContent = "✓ Link copied"; toast.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22C55E;color:#fff;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;z-index:99999"; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2500); }} />
-          <ToolBtn icon={<Icons.Download />} label={isMobile ? "" : "Export"} onClick={async () => { const PptxGenJS = (await import("pptxgenjs")).default; const pptx = new PptxGenJS(); pptx.layout = "LAYOUT_WIDE"; slides.forEach((s, si) => { const sl = pptx.addSlide(); sl.background = { color: "0F1117" }; (s.elements || []).forEach((el) => { if (el.type === "text") { sl.addText(el.content || "", { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fontSize: (el.fontSize || 16) * 0.6, color: (el.color || "#E2E8F0").replace("#", ""), fontFace: "Arial", bold: el.fontWeight === "700" || el.fontWeight === "600", align: el.textAlign || "left" }); } else if (el.type === "shape") { sl.addShape(pptx.ShapeType.rect, { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fill: { color: (el.fill || "#6366F1").replace("#", "") } }); } else if (el.type === "interactive") { sl.addText((el.interactiveType === "poll" ? "📊 " : el.interactiveType === "quiz" ? "❓ " : "☁️ ") + (el.question || ""), { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: 0.5, fontSize: 14, color: "6366F1", fontFace: "Arial", bold: true }); if (el.options) { el.options.forEach((opt, oi) => { sl.addText(String.fromCharCode(65 + oi) + ". " + opt, { x: el.x / 100, y: (el.y + 50 + oi * 35) / 100, w: el.w / 100, h: 0.35, fontSize: 12, color: "E2E8F0", fontFace: "Arial" }); }); } } }); }); pptx.writeFile({ fileName: (presentationTitle || "presentation") + ".pptx" }); }} />
-          <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 4, padding: isMobile ? "6px 8px" : "6px 14px", background: "linear-gradient(135deg, #F59E0B15, #F59E0B08)", border: "1px solid #F59E0B30", borderRadius: 8, color: "#F59E0B", fontSize: 12, fontWeight: 600, textDecoration: "none", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            {!isMobile && "Upgrade"}
-          </a>
+          <ToolBtn icon={<Icons.Download />} label={isMobile ? "" : "Export"} onClick={async () => { if (userPlan !== "pro") { if (confirm("Export to PPTX is a Pro feature. Upgrade now?")) window.location.href = "/pricing"; return; } const PptxGenJS = (await import("pptxgenjs")).default; const pptx = new PptxGenJS(); pptx.layout = "LAYOUT_WIDE"; slides.forEach((s, si) => { const sl = pptx.addSlide(); sl.background = { color: "0F1117" }; (s.elements || []).forEach((el) => { if (el.type === "text") { sl.addText(el.content || "", { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fontSize: (el.fontSize || 16) * 0.6, color: (el.color || "#E2E8F0").replace("#", ""), fontFace: "Arial", bold: el.fontWeight === "700" || el.fontWeight === "600", align: el.textAlign || "left" }); } else if (el.type === "shape") { sl.addShape(pptx.ShapeType.rect, { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: el.h / 100, fill: { color: (el.fill || "#6366F1").replace("#", "") } }); } else if (el.type === "interactive") { sl.addText((el.interactiveType === "poll" ? "📊 " : el.interactiveType === "quiz" ? "❓ " : "☁️ ") + (el.question || ""), { x: el.x / 100, y: el.y / 100, w: el.w / 100, h: 0.5, fontSize: 14, color: "6366F1", fontFace: "Arial", bold: true }); if (el.options) { el.options.forEach((opt, oi) => { sl.addText(String.fromCharCode(65 + oi) + ". " + opt, { x: el.x / 100, y: (el.y + 50 + oi * 35) / 100, w: el.w / 100, h: 0.35, fontSize: 12, color: "E2E8F0", fontFace: "Arial" }); }); } } }); }); pptx.writeFile({ fileName: (presentationTitle || "presentation") + ".pptx" }); }} />
           <button onClick={() => { if (presentationId) { window.location.href = "/presenter"; } else { setPresenting(true); setPresentSlideIndex(activeSlideIndex); } }} style={{ display: "flex", alignItems: "center", gap: 4, padding: isMobile ? "6px 10px" : "6px 16px", background: "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
             <Icons.Play /> {!isMobile && "Present"}
           </button>

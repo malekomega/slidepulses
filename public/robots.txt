@@ -4,5 +4,6 @@ Disallow: /admin
 Disallow: /editor
 Disallow: /presenter
 Disallow: /dashboard
+Disallow: /api/
 
 Sitemap: https://www.slideplus.io/sitemap.xml

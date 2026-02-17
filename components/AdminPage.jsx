@@ -1,11 +1,5 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-);
 
 /* ─── Hardcoded Admin Credentials ─── */
 const ADMIN_USER = "malekomega";
@@ -153,39 +147,16 @@ function AdminPanel({ onLogout }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [pRes, sRes, rRes, subRes] = await Promise.all([
-        supabase.from("presentations").select("*").order("created_at", { ascending: false }),
-        supabase.from("sessions").select("*").order("created_at", { ascending: false }),
-        supabase.from("responses").select("id", { count: "exact", head: true }),
-        supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
-      ]);
-      setPresentations(pRes.data || []);
-      setSessions(sRes.data || []);
-      setResponses(rRes.count || 0);
-      setSubscriptions(subRes.data || []);
-
-      // Extract unique users from presentations, merge with subscription data
-      const subMap = {};
-      (subRes.data || []).forEach(s => {
-        if (s.user_id) subMap[s.user_id] = s;
-        if (s.user_email) subMap[s.user_email] = s;
+      const res = await fetch("/api/admin-data", {
+        headers: { "x-admin-token": "sp_admin_access" },
       });
-
-      const userMap = {};
-      (pRes.data || []).forEach(p => {
-        if (p.user_id && !userMap[p.user_id]) {
-          const sub = subMap[p.user_id];
-          userMap[p.user_id] = {
-            id: p.user_id,
-            presentations: 0,
-            lastActive: p.created_at,
-            plan: sub?.plan || "free",
-            subStatus: sub?.status || "none",
-          };
-        }
-        if (p.user_id) userMap[p.user_id].presentations++;
-      });
-      setUsers(Object.values(userMap));
+      if (!res.ok) throw new Error("Failed to load data");
+      const data = await res.json();
+      setPresentations(data.presentations || []);
+      setSessions(data.sessions || []);
+      setResponses(data.responses || 0);
+      setSubscriptions(data.subscriptions || []);
+      setUsers(data.users || []);
     } catch (err) {
       console.error("Load failed:", err);
     }
@@ -203,12 +174,20 @@ function AdminPanel({ onLogout }) {
 
   const deletePresentation = async (id) => {
     if (!confirm("Delete this presentation? This cannot be undone.")) return;
-    await supabase.from("presentations").delete().eq("id", id);
+    await fetch("/api/admin-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": "sp_admin_access" },
+      body: JSON.stringify({ action: "delete_presentation", id }),
+    });
     loadData();
   };
 
   const endSession = async (id) => {
-    await supabase.from("sessions").update({ is_active: false }).eq("id", id);
+    await fetch("/api/admin-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": "sp_admin_access" },
+      body: JSON.stringify({ action: "end_session", id }),
+    });
     loadData();
   };
 
@@ -304,15 +283,17 @@ function AdminPanel({ onLogout }) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <div style={cardStyle}>
                       <h3 style={{ fontFamily: "'Outfit'", fontSize: 15, fontWeight: 600, marginBottom: 16, color: "#94A3B8" }}>Recent Presentations</h3>
-                      {presentations.slice(0, 6).map(p => (
+                      {presentations.slice(0, 6).map(p => {
+                        const usr = users.find(u => u.id === p.user_id);
+                        return (
                         <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #0e1018" }}>
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 500 }}>{p.title || "Untitled"}</div>
-                            <div style={{ fontSize: 11, color: "#4a5070" }}>{getSlideCount(p)} slides</div>
+                            <div style={{ fontSize: 11, color: "#4a5070" }}>{usr?.name || "Unknown"} · {getSlideCount(p)} slides</div>
                           </div>
                           <div style={{ fontSize: 11, color: "#4a5070" }}>{new Date(p.created_at).toLocaleDateString()}</div>
                         </div>
-                      ))}
+                      ); })}
                     </div>
 
                     <div style={cardStyle}>
@@ -360,7 +341,7 @@ function AdminPanel({ onLogout }) {
                         <thead>
                           <tr>
                             <th style={thStyle}>Title</th>
-                            <th style={thStyle}>User ID</th>
+                            <th style={thStyle}>User</th>
                             <th style={thStyle}>Slides</th>
                             <th style={thStyle}>Starred</th>
                             <th style={thStyle}>Shared</th>
@@ -369,10 +350,12 @@ function AdminPanel({ onLogout }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredPresentations.map(p => (
+                          {filteredPresentations.map(p => {
+                            const usr = users.find(u => u.id === p.user_id);
+                            return (
                             <tr key={p.id} style={{ transition: "background 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#0e1018"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
                               <td style={{ ...tdStyle, fontWeight: 500 }}>{p.title || "Untitled"}</td>
-                              <td style={{ ...tdStyle, fontSize: 11, color: "#4a5070", fontFamily: "monospace" }}>{p.user_id?.slice(0, 8)}...</td>
+                              <td style={{ ...tdStyle, fontSize: 12, color: "#94A3B8" }}>{usr?.name || "Unknown"}</td>
                               <td style={tdStyle}>{getSlideCount(p)}</td>
                               <td style={tdStyle}>{p.is_starred ? "⭐" : "—"}</td>
                               <td style={tdStyle}>
@@ -385,7 +368,7 @@ function AdminPanel({ onLogout }) {
                                 </button>
                               </td>
                             </tr>
-                          ))}
+                          ); })}
                         </tbody>
                       </table>
                     </div>
@@ -465,20 +448,23 @@ function AdminPanel({ onLogout }) {
 
                   <div style={cardStyle}>
                     <div style={{ overflowX: "auto" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
                         <thead>
                           <tr>
-                            <th style={thStyle}>User ID</th>
+                            <th style={thStyle}>Name</th>
+                            <th style={thStyle}>Email</th>
                             <th style={thStyle}>Plan</th>
                             <th style={thStyle}>Presentations</th>
-                            <th style={thStyle}>Last Active</th>
+                            <th style={thStyle}>Last Sign In</th>
+                            <th style={thStyle}>Joined</th>
                             <th style={thStyle}>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {users.map(u => (
                             <tr key={u.id} style={{ transition: "background 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#0e1018"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                              <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 12, color: "#94A3B8" }}>{u.id}</td>
+                              <td style={{ ...tdStyle, fontWeight: 600 }}>{u.name || "Unknown"}</td>
+                              <td style={{ ...tdStyle, fontSize: 12, color: "#94A3B8" }}>{u.email || "—"}</td>
                               <td style={tdStyle}>
                                 <span style={{
                                   padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
@@ -493,17 +479,19 @@ function AdminPanel({ onLogout }) {
                               <td style={tdStyle}>
                                 <span style={{ background: "#6366F115", color: "#6366F1", padding: "2px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>{u.presentations}</span>
                               </td>
-                              <td style={{ ...tdStyle, color: "#4a5070", fontSize: 12 }}>{new Date(u.lastActive).toLocaleDateString()}</td>
+                              <td style={{ ...tdStyle, color: "#4a5070", fontSize: 12 }}>{u.last_sign_in ? new Date(u.last_sign_in).toLocaleString() : "Never"}</td>
+                              <td style={{ ...tdStyle, color: "#4a5070", fontSize: 12 }}>{u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
                               <td style={tdStyle}>
                                 <button onClick={async () => {
                                   const newPlan = u.plan === "pro" ? "free" : "pro";
-                                  const { data: existing } = await supabase.from("subscriptions").select("id").eq("user_id", u.id).single();
-                                  if (existing) {
-                                    await supabase.from("subscriptions").update({ plan: newPlan, status: "active", updated_at: new Date().toISOString() }).eq("id", existing.id);
-                                  } else {
-                                    await supabase.from("subscriptions").insert({ user_id: u.id, user_email: "", plan: newPlan, status: "active" });
-                                  }
-                                  loadData();
+                                  try {
+                                    await fetch("/api/admin-data", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json", "x-admin-token": "sp_admin_access" },
+                                      body: JSON.stringify({ action: "set_plan", user_id: u.id, email: u.email, plan: newPlan }),
+                                    });
+                                    loadData();
+                                  } catch (err) { alert("Failed: " + err.message); }
                                 }} style={{
                                   background: u.plan === "pro" ? "#F43F5E12" : "#22C55E12",
                                   border: `1px solid ${u.plan === "pro" ? "#F43F5E25" : "#22C55E25"}`,

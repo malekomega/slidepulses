@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+// ─── PLAN LIMITS ───
+const PLAN_LIMITS = {
+  free: { maxPresentations: 5, maxParticipants: 50, canExport: false, hasWatermark: true },
+  pro: { maxPresentations: 40, maxParticipants: 500, canExport: true, hasWatermark: false },
+};
+
 // ─── ICONS ───
 const I = {
   Eye: ({ off }) => off ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
@@ -33,6 +39,7 @@ const I = {
   Users: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
   Zap: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
   ArrowR: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
+  Crown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h20M4 17l2-12 6 5 6-5 2 12H4z"/></svg>,
 };
 
 
@@ -294,15 +301,6 @@ function SignupPage({ onSwitch, onLogin }) {
     try {
       const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
       if (error) throw error;
-      const params = new URLSearchParams(window.location.search);
-      const plan = params.get("plan");
-      if (plan === "monthly") {
-        window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(email);
-        return;
-      } else if (plan === "annual") {
-        window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(email);
-        return;
-      }
       onLogin({ id: data.user.id, email: data.user.email, name });
     } catch (err) {
       alert(err.message || "Signup failed");
@@ -322,8 +320,8 @@ function SignupPage({ onSwitch, onLogin }) {
 
         <div style={{ background: "#0A0C12", border: "1px solid #131520", borderRadius: 16, padding: "32px 28px" }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <SocialBtn icon={<I.Google />} label="Google" onClick={async () => { const plan = new URLSearchParams(window.location.search).get("plan"); const redir = window.location.origin + (plan ? "/dashboard?plan=" + plan : "/dashboard"); const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: redir } }); if (error) alert("Google login failed: " + error.message); }} />
-            <SocialBtn icon={<I.Microsoft />} label="Microsoft" onClick={async () => { const plan = new URLSearchParams(window.location.search).get("plan"); const redir = window.location.origin + (plan ? "/dashboard?plan=" + plan : "/dashboard"); const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { redirectTo: redir, scopes: "email profile openid" } }); if (error) alert("Microsoft login failed: " + error.message); }} />
+            <SocialBtn icon={<I.Google />} label="Google" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/dashboard" } }); if (error) alert("Google login failed: " + error.message); }} />
+            <SocialBtn icon={<I.Microsoft />} label="Microsoft" onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { redirectTo: window.location.origin + "/dashboard", scopes: "email profile openid" } }); if (error) alert("Microsoft login failed: " + error.message); }} />
           </div>
           <Divider />
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
@@ -423,6 +421,25 @@ function Dashboard({ user, onLogout }) {
   const [creating, setCreating] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [userPlan, setUserPlan] = useState("free");
+  const [planLoading, setPlanLoading] = useState(true);
+
+  // Fetch user plan
+  useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const { data } = await supabase.from("subscriptions").select("plan, status").eq("user_id", user.id).eq("status", "active").single();
+        if (data && data.plan === "pro") setUserPlan("pro");
+        else {
+          // Also check by email
+          const { data: byEmail } = await supabase.from("subscriptions").select("plan, status").eq("user_email", user.email?.toLowerCase()).eq("status", "active").single();
+          if (byEmail && byEmail.plan === "pro") setUserPlan("pro");
+        }
+      } catch {}
+      setPlanLoading(false);
+    };
+    if (user?.id) fetchPlan();
+  }, [user?.id, user?.email]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -445,6 +462,18 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => { if (user?.id) loadPresentations(); }, [user?.id, loadPresentations]);
 
   const handleCreate = async () => {
+    const limits = PLAN_LIMITS[userPlan] || PLAN_LIMITS.free;
+    if (presentations.length >= limits.maxPresentations) {
+      const msg = userPlan === "free"
+        ? `Free plan allows up to ${limits.maxPresentations} presentations. Upgrade to Pro for more!`
+        : `Your plan allows up to ${limits.maxPresentations} presentations.`;
+      if (userPlan === "free" && confirm(msg + "\n\nGo to Pricing page?")) {
+        window.location.href = "/pricing";
+      } else if (userPlan !== "free") {
+        alert(msg);
+      }
+      return;
+    }
     setCreating(true);
     try {
       const { data, error } = await supabase.from("presentations").insert({ user_id: user.id, title: "Untitled Presentation", slides: JSON.stringify([{ type: "title", content: { title: "Untitled", subtitle: "" } }]), is_shared: false, is_starred: false }).select().single();
@@ -487,7 +516,7 @@ function Dashboard({ user, onLogout }) {
     return (
       <div style={{ display: "flex", height: "100vh", background: "#090B10", fontFamily: "'DM Sans', sans-serif", color: "#E2E8F0" }}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-        {!isMobile && <DashSidebar section={sidebarSection} onSection={setSidebarSection} onSettings={() => setSettingsOpen(true)} onLogout={onLogout} initials={initials} user={user} active="settings" />}
+        {!isMobile && <DashSidebar section={sidebarSection} onSection={setSidebarSection} onSettings={() => setSettingsOpen(true)} onLogout={onLogout} initials={initials} user={user} active="settings" userPlan={userPlan} />}
         <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "20px 16px" : "32px 40px" }}>
           <button onClick={() => setSettingsOpen(false)} style={{ background: "none", border: "none", color: "#6366F1", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 24 }}>{"← Back to Dashboard"}</button>
           <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 700, margin: "0 0 32px" }}>Account Settings</h1>
@@ -575,7 +604,7 @@ function Dashboard({ user, onLogout }) {
       {isMobile && mobileMenu && <div onClick={() => setMobileMenu(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 90 }} />}
       {/* Sidebar - hidden on mobile unless toggled */}
       {(!isMobile || mobileMenu) && <div style={{ position: isMobile ? "fixed" : "relative", left: 0, top: 0, bottom: 0, zIndex: isMobile ? 100 : 1, width: isMobile ? "75vw" : 230, maxWidth: 280 }}>
-        <DashSidebar section={sidebarSection} onSection={(s) => { setSidebarSection(s); setSettingsOpen(false); setMobileMenu(false); }} onSettings={() => { setSettingsOpen(true); setMobileMenu(false); }} onLogout={onLogout} initials={initials} user={user} />
+        <DashSidebar section={sidebarSection} onSection={(s) => { setSidebarSection(s); setSettingsOpen(false); setMobileMenu(false); }} onSettings={() => { setSettingsOpen(true); setMobileMenu(false); }} onLogout={onLogout} initials={initials} user={user} userPlan={userPlan} />
       </div>}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", width: "100%" }}>
         {/* Top bar */}
@@ -592,16 +621,26 @@ function Dashboard({ user, onLogout }) {
               <button onClick={() => setView("grid")} style={{ padding: "7px 10px", background: view === "grid" ? "#151825" : "transparent", border: "none", color: view === "grid" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.Grid /></button>
               <button onClick={() => setView("list")} style={{ padding: "7px 10px", background: view === "list" ? "#151825" : "transparent", border: "none", color: view === "list" ? "#6366F1" : "#4a5070", cursor: "pointer", display: "flex" }}><I.List /></button>
             </div>
-            <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 5, padding: isMobile ? "9px 12px" : "9px 16px", background: "linear-gradient(135deg, #F59E0B15, #F59E0B08)", border: "1px solid #F59E0B30", borderRadius: 10, color: "#F59E0B", fontSize: 13, fontWeight: 600, textDecoration: "none", fontFamily: "'DM Sans'", whiteSpace: "nowrap" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              {!isMobile && "Upgrade Plan"}
-            </a>
+            {userPlan === "free" && <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 5, padding: isMobile ? "9px 10px" : "9px 16px", background: "linear-gradient(135deg, #F59E0B, #EAB308)", border: "none", borderRadius: 10, color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans'", textDecoration: "none", whiteSpace: "nowrap" }}><I.Crown />{!isMobile && "Upgrade"}</a>}
             <button onClick={handleCreate} disabled={creating} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "9px 14px" : "9px 20px", background: creating ? "#2a2e45" : "linear-gradient(135deg, #6366F1, #7C3AED)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 600, cursor: creating ? "wait" : "pointer", fontFamily: "'DM Sans'" }}>
               {creating ? <div style={{ width: 16, height: 16, border: "2px solid #fff4", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : <><I.Plus /> {!isMobile && "New Presentation"}</>}
             </button>
           </div>
         </div>
         <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "16px" : "28px 32px" }}>
+          {/* Plan usage bar */}
+          {!planLoading && <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 18px", background: userPlan === "pro" ? "#6366F108" : "#F59E0B08", border: `1px solid ${userPlan === "pro" ? "#6366F120" : "#F59E0B20"}`, borderRadius: 12, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", background: userPlan === "pro" ? "#6366F120" : "#F59E0B20", color: userPlan === "pro" ? "#6366F1" : "#F59E0B" }}>{userPlan === "pro" ? "Pro" : "Free"}</span>
+              <span style={{ fontSize: 13, color: "#94A3B8" }}>
+                {presentations.length} / {(PLAN_LIMITS[userPlan] || PLAN_LIMITS.free).maxPresentations} presentations
+              </span>
+              <div style={{ width: 100, height: 4, background: "#1a1d2e", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min(100, (presentations.length / (PLAN_LIMITS[userPlan] || PLAN_LIMITS.free).maxPresentations) * 100)}%`, height: "100%", background: userPlan === "pro" ? "#6366F1" : presentations.length >= (PLAN_LIMITS[userPlan] || PLAN_LIMITS.free).maxPresentations ? "#F43F5E" : "#F59E0B", borderRadius: 2, transition: "width 0.3s" }} />
+              </div>
+            </div>
+            {userPlan === "free" && <a href="/pricing" style={{ fontSize: 12, color: "#F59E0B", fontWeight: 600, textDecoration: "none" }}>Upgrade to Pro →</a>}
+          </div>}
           {/* Stats cards */}
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 10 : 14, marginBottom: isMobile ? 20 : 32 }}>
             {[{ label: "Total Presentations", value: presentations.length, icon: <I.Slides />, color: "#6366F1" }, { label: "Total Slides", value: totalSlides, icon: <I.Folder />, color: "#8B5CF6" }, { label: "Shared", value: sharedCount, icon: <I.Users />, color: "#06B6D4" }, { label: "This Week", value: thisWeek, icon: <I.Zap />, color: "#22C55E" }].map((s, i) => (
@@ -624,7 +663,7 @@ function Dashboard({ user, onLogout }) {
 }
 
 // ─── DASHBOARD SIDEBAR ───
-function DashSidebar({ section, onSection, onSettings, onLogout, initials, user, active }) {
+function DashSidebar({ section, onSection, onSettings, onLogout, initials, user, active, userPlan }) {
   const items = [
     { key: "all", label: "All Presentations", icon: <I.Home /> },
     { key: "starred", label: "Starred", icon: <I.Star /> },
@@ -653,7 +692,10 @@ function DashSidebar({ section, onSection, onSettings, onLogout, initials, user,
           <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.name}</div>
-            <div style={{ fontSize: 11, color: "#4a5070", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ fontSize: 11, color: "#4a5070", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
+            </div>
+            <span style={{ display: "inline-block", marginTop: 4, padding: "1px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", background: userPlan === "pro" ? "#6366F120" : "#F59E0B20", color: userPlan === "pro" ? "#6366F1" : "#F59E0B" }}>{userPlan || "free"}</span>
           </div>
         </div>
         <button onClick={onLogout}
@@ -734,11 +776,6 @@ export default function SlidePulseAuth({ initialPage = "login" }) {
         if (session && session.user) {
           const u = session.user;
           setUser({ id: u.id, email: u.email, name: u.user_metadata?.full_name || u.email.split("@")[0] });
-          // Check if user needs to be redirected to payment
-          const params = new URLSearchParams(window.location.search);
-          const plan = params.get("plan");
-          if (plan === "monthly") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
-          if (plan === "annual") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
           setPage("dashboard");
         }
       } catch (err) {
@@ -754,10 +791,6 @@ export default function SlidePulseAuth({ initialPage = "login" }) {
       if (event === "SIGNED_IN" && session?.user) {
         const u = session.user;
         setUser({ id: u.id, email: u.email, name: u.user_metadata?.full_name || u.email.split("@")[0] });
-        const params = new URLSearchParams(window.location.search);
-        const plan = params.get("plan");
-        if (plan === "monthly") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/49782a2e-5ff4-4b99-be54-4187b74b2650?checkout[email]=" + encodeURIComponent(u.email); return; }
-        if (plan === "annual") { window.location.href = "https://slideplus.lemonsqueezy.com/checkout/buy/8c111683-8c52-4253-a0cb-622d46f4109f?checkout[email]=" + encodeURIComponent(u.email); return; }
         setPage("dashboard");
       }
     });

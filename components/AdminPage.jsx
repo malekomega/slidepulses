@@ -146,29 +146,41 @@ function AdminPanel({ onLogout }) {
   const [sessions, setSessions] = useState([]);
   const [responses, setResponses] = useState(0);
   const [users, setUsers] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [pRes, sRes, rRes] = await Promise.all([
+      const [pRes, sRes, rRes, subRes] = await Promise.all([
         supabase.from("presentations").select("*").order("created_at", { ascending: false }),
         supabase.from("sessions").select("*").order("created_at", { ascending: false }),
         supabase.from("responses").select("id", { count: "exact", head: true }),
+        supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
       ]);
       setPresentations(pRes.data || []);
       setSessions(sRes.data || []);
       setResponses(rRes.count || 0);
+      setSubscriptions(subRes.data || []);
 
-      // Extract unique users from presentations
+      // Extract unique users from presentations, merge with subscription data
+      const subMap = {};
+      (subRes.data || []).forEach(s => {
+        if (s.user_id) subMap[s.user_id] = s;
+        if (s.user_email) subMap[s.user_email] = s;
+      });
+
       const userMap = {};
       (pRes.data || []).forEach(p => {
         if (p.user_id && !userMap[p.user_id]) {
+          const sub = subMap[p.user_id];
           userMap[p.user_id] = {
             id: p.user_id,
             presentations: 0,
             lastActive: p.created_at,
+            plan: sub?.plan || "free",
+            subStatus: sub?.status || "none",
           };
         }
         if (p.user_id) userMap[p.user_id].presentations++;
@@ -205,6 +217,7 @@ function AdminPanel({ onLogout }) {
     { id: "presentations", label: "Presentations", icon: <Icons.Slides /> },
     { id: "sessions", label: "Sessions", icon: <Icons.Play /> },
     { id: "users", label: "Users", icon: <Icons.Users /> },
+    { id: "subscriptions", label: "Subscriptions", icon: <Icons.BarChart /> },
   ];
 
   const thStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#4a5070", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid #131520" };
@@ -257,6 +270,7 @@ function AdminPanel({ onLogout }) {
               <div>{presentations.length} presentations</div>
               <div>{sessions.filter(s => s.is_active).length} active sessions</div>
               <div>{users.length} users</div>
+              <div style={{ color: "#6366F1" }}>{subscriptions.filter(s => s.plan === "pro" && s.status === "active").length} pro subscribers</div>
             </div>
           </div>
         </div>
@@ -281,6 +295,7 @@ function AdminPanel({ onLogout }) {
 
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
                     <StatCard label="Total Users" value={users.length} color="#6366F1" icon={<Icons.Users />} />
+                    <StatCard label="Pro Users" value={subscriptions.filter(s => s.plan === "pro" && s.status === "active").length} color="#F59E0B" icon={<Icons.BarChart />} />
                     <StatCard label="Presentations" value={presentations.length} color="#8B5CF6" icon={<Icons.Slides />} />
                     <StatCard label="Sessions" value={sessions.length} color="#06B6D4" icon={<Icons.Play />} />
                     <StatCard label="Total Responses" value={responses} color="#22C55E" icon={<Icons.BarChart />} />
@@ -450,12 +465,14 @@ function AdminPanel({ onLogout }) {
 
                   <div style={cardStyle}>
                     <div style={{ overflowX: "auto" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
                         <thead>
                           <tr>
                             <th style={thStyle}>User ID</th>
+                            <th style={thStyle}>Plan</th>
                             <th style={thStyle}>Presentations</th>
                             <th style={thStyle}>Last Active</th>
+                            <th style={thStyle}>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -463,9 +480,39 @@ function AdminPanel({ onLogout }) {
                             <tr key={u.id} style={{ transition: "background 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#0e1018"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
                               <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 12, color: "#94A3B8" }}>{u.id}</td>
                               <td style={tdStyle}>
+                                <span style={{
+                                  padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                                  background: u.plan === "pro" ? "#6366F115" : "#F59E0B15",
+                                  color: u.plan === "pro" ? "#6366F1" : "#F59E0B",
+                                  border: `1px solid ${u.plan === "pro" ? "#6366F125" : "#F59E0B25"}`,
+                                  textTransform: "uppercase",
+                                }}>
+                                  {u.plan || "free"}
+                                </span>
+                              </td>
+                              <td style={tdStyle}>
                                 <span style={{ background: "#6366F115", color: "#6366F1", padding: "2px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>{u.presentations}</span>
                               </td>
                               <td style={{ ...tdStyle, color: "#4a5070", fontSize: 12 }}>{new Date(u.lastActive).toLocaleDateString()}</td>
+                              <td style={tdStyle}>
+                                <button onClick={async () => {
+                                  const newPlan = u.plan === "pro" ? "free" : "pro";
+                                  const { data: existing } = await supabase.from("subscriptions").select("id").eq("user_id", u.id).single();
+                                  if (existing) {
+                                    await supabase.from("subscriptions").update({ plan: newPlan, status: "active", updated_at: new Date().toISOString() }).eq("id", existing.id);
+                                  } else {
+                                    await supabase.from("subscriptions").insert({ user_id: u.id, user_email: "", plan: newPlan, status: "active" });
+                                  }
+                                  loadData();
+                                }} style={{
+                                  background: u.plan === "pro" ? "#F43F5E12" : "#22C55E12",
+                                  border: `1px solid ${u.plan === "pro" ? "#F43F5E25" : "#22C55E25"}`,
+                                  borderRadius: 6, color: u.plan === "pro" ? "#F43F5E" : "#22C55E",
+                                  fontSize: 11, padding: "4px 10px", cursor: "pointer", fontFamily: "'DM Sans'",
+                                }}>
+                                  {u.plan === "pro" ? "Downgrade" : "Upgrade to Pro"}
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -473,6 +520,79 @@ function AdminPanel({ onLogout }) {
                     </div>
                     {users.length === 0 && (
                       <p style={{ textAlign: "center", color: "#2a2d40", fontSize: 13, padding: 20 }}>No users yet</p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* SUBSCRIPTIONS TAB */}
+              {tab === "subscriptions" && (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                    <h2 style={{ fontFamily: "'Outfit'", fontSize: 22, fontWeight: 700, margin: 0 }}>Subscriptions <span style={{ fontSize: 14, color: "#4a5070", fontWeight: 400 }}>({subscriptions.length})</span></h2>
+                    <button onClick={loadData} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "#151825", border: "1px solid #1e2235", borderRadius: 8, color: "#94A3B8", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans'" }}>
+                      <Icons.RefreshCw /> Refresh
+                    </button>
+                  </div>
+
+                  {/* Summary cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
+                    <div style={cardStyle}>
+                      <div style={{ fontSize: 11, color: "#4a5070", marginBottom: 6, textTransform: "uppercase", fontWeight: 600 }}>Active Pro</div>
+                      <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "'Outfit'", color: "#22C55E" }}>{subscriptions.filter(s => s.plan === "pro" && s.status === "active").length}</div>
+                    </div>
+                    <div style={cardStyle}>
+                      <div style={{ fontSize: 11, color: "#4a5070", marginBottom: 6, textTransform: "uppercase", fontWeight: 600 }}>Cancelled</div>
+                      <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "'Outfit'", color: "#F43F5E" }}>{subscriptions.filter(s => s.status === "cancelled").length}</div>
+                    </div>
+                    <div style={cardStyle}>
+                      <div style={{ fontSize: 11, color: "#4a5070", marginBottom: 6, textTransform: "uppercase", fontWeight: 600 }}>Free Users</div>
+                      <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "'Outfit'", color: "#F59E0B" }}>{users.length - subscriptions.filter(s => s.plan === "pro" && s.status === "active").length}</div>
+                    </div>
+                  </div>
+
+                  <div style={cardStyle}>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
+                        <thead>
+                          <tr>
+                            <th style={thStyle}>Email</th>
+                            <th style={thStyle}>Plan</th>
+                            <th style={thStyle}>Status</th>
+                            <th style={thStyle}>Lemon Squeezy ID</th>
+                            <th style={thStyle}>Period End</th>
+                            <th style={thStyle}>Created</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {subscriptions.map(s => (
+                            <tr key={s.id} style={{ transition: "background 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#0e1018"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                              <td style={{ ...tdStyle, fontWeight: 500 }}>{s.user_email || "—"}</td>
+                              <td style={tdStyle}>
+                                <span style={{
+                                  padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                                  background: s.plan === "pro" ? "#6366F115" : "#F59E0B15",
+                                  color: s.plan === "pro" ? "#6366F1" : "#F59E0B",
+                                  textTransform: "uppercase",
+                                }}>{s.plan}</span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{
+                                  padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                                  background: s.status === "active" ? "#22C55E15" : "#F43F5E15",
+                                  color: s.status === "active" ? "#22C55E" : "#F43F5E",
+                                }}>{s.status}</span>
+                              </td>
+                              <td style={{ ...tdStyle, fontSize: 11, color: "#4a5070", fontFamily: "monospace" }}>{s.lemon_squeezy_id || "—"}</td>
+                              <td style={{ ...tdStyle, color: "#4a5070", fontSize: 12 }}>{s.current_period_end ? new Date(s.current_period_end).toLocaleDateString() : "—"}</td>
+                              <td style={{ ...tdStyle, color: "#4a5070", fontSize: 12 }}>{new Date(s.created_at).toLocaleDateString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {subscriptions.length === 0 && (
+                      <p style={{ textAlign: "center", color: "#2a2d40", fontSize: 13, padding: 20 }}>No subscriptions yet</p>
                     )}
                   </div>
                 </>
